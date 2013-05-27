@@ -1,9 +1,9 @@
 #ifndef STARFIELD_H
 #define STARFIELD_H
 
-#include <SpaceThing.h>
+#include "SpaceThing.h"
 
-class Starfield : SpaceThing {
+class Starfield : public SpaceThing {
 protected:
   int _count;
   float _seed;

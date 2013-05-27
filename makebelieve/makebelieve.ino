@@ -2,11 +2,12 @@
 #include <Adafruit_ST7735.h> // Hardware-specific library
 #include <SPI.h>
 
-#include <Colors.h>
-#include <Controls.h>
-#include <SpaceShip.h>
-#include <Starfield.h>
-#include <Viewport.h>
+#include "Colors.h"
+#include "Controls.h"
+#include "SpaceShip.h"
+#include "Starfield.h"
+#include "Viewport.h"
+#include "Planet.h"
 
 // Define pins used by potentiometer knobs
 #define PIN_PADDLE_L 22
@@ -33,10 +34,15 @@ ButtonControl button_left  = ButtonControl(PIN_BUTTON_L);
 ButtonControl button_right = ButtonControl(PIN_BUTTON_R);
 ButtonControl button_start = ButtonControl(PIN_BUTTON_START);
 // Player's Spaceship
-SpaceShip spaceship(0, 0);
+SpaceShip spaceship;
 Starfield starfield;
+Planet mars(-40, 60, 5, RED),
+       earth(40, -55, 5, BLUE),
+       venus(-45, 50, 4, GREEN);
 
-Viewport view(-tft.width()/2, -tft.height()/2, tft.width(), tft.height());
+Viewport view(
+  -ST7735_TFTWIDTH/2, -ST7735_TFTHEIGHT/2,
+   ST7735_TFTWIDTH,    ST7735_TFTHEIGHT);
 
 // Main Mode determines which "state" the game is in
 #define MODE_TITLE     0
@@ -100,8 +106,8 @@ void mode_calibrate() {
   tft.drawFastHLine(tft.width()/2-cal_r+1, tft.height()-1, cal_r*2-1, GRAY);
   tft.drawFastVLine(tft.width()/2, tft.height()-cal_r+1, cal_r, GRAY);
 
-  tft.drawFastVLine(cal_x, 0, tft.height(), BLUE);
-  tft.drawFastHLine(0, cal_y, tft.width(), RED);  
+  tft.drawFastVLine(cal_x, 0, tft.height(), RED);
+  tft.drawFastHLine(0, cal_y, tft.width(), BLUE);  
 
   tft.setTextSize(1);
   tft.setTextColor(GRAY);
@@ -127,14 +133,37 @@ void mode_calibrate() {
 
 // MODE_PLAY (2)
 void mode_play() {
+  starfield.erase(tft, view);
+  spaceship.erase(tft, view);
+
+  mars.erase(tft, view);
+  earth.erase(tft, view);
+  venus.erase(tft, view);
+
+  spaceship.set_thrust(
+    paddle_left.value(SPACE_SHIP_THRUST_MAX));
+  spaceship.set_angular_thrust(
+    paddle_right.value(
+      -SPACE_SHIP_ANGULAR_THRUST_MAX,
+       SPACE_SHIP_ANGULAR_THRUST_MAX));
+  // spaceship.set_angular_thrust(1.0);
+    // paddle_right.value(SPACE_SHIP_THRUST_MAX));
+  
+  spaceship.step();
+
   starfield.draw(tft, view);
+
+  mars.draw(tft, view);
+  earth.draw(tft, view);
+  venus.draw(tft, view);
+
   spaceship.draw(tft, view);
+
+  delay(30);
 
   if (button_start.is_pressed()) {
     set_main_mode(MODE_CALIBRATE);
   }
-
-  delay(30);
 }
 
 // MODE_BUTTON_UP (3)
@@ -147,6 +176,13 @@ void mode_button_up() {
 void setup() {
   tft.initR();
   tft.fillScreen(BLACK);
+  Serial.begin(9600);
+
+  Serial.print("view ");
+  Serial.print(view.x1());
+  Serial.print(", ");
+  Serial.print(view.y1());
+  Serial.print("\n");
 }
 
 void loop() {

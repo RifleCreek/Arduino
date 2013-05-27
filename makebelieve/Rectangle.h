@@ -1,6 +1,8 @@
 #ifndef RECTANGLE_H
 #define RECTANGLE_H
 
+#include <Arduino.h>
+
 class Rectangle {
 public:
   int _x, _y, _w, _h;

@@ -15,6 +15,7 @@ class PaddleControl : InputControl {
 public:
   PaddleControl(int pin);
   float value(float max_value);
+  float value(float min_value, float max_value);
 };
 
 class ButtonControl : InputControl {

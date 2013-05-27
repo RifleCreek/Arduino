@@ -66,7 +66,7 @@ float distance_to(float x1, float y1, float x2, float y2) {
 void set_main_mode(int mode) {
   tft.fillScreen(cBlack);
   main_mode = mode;
-  delay(500);
+  delay(400);
 }
 
 void reset_spaceship() {
@@ -266,3 +266,4 @@ void loop() {
     case 2: mode_play(); break;
   }
 }
+
