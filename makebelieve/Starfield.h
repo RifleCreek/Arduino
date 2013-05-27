@@ -10,10 +10,11 @@ protected:
 
 public:
   Starfield(int count = 21);
+  Starfield(float x, float y, int count = 21);
   virtual void draw(Adafruit_ST7735 tft, Viewport view);
   virtual void erase(Adafruit_ST7735 tft, Viewport view);
 
-  void draw_or_erase(Adafruit_ST7735 tft, Viewport view, bool erase);
+  void draw_or_erase(Adafruit_ST7735 tft, int cx, int cy, bool erase);
 };
 
 #endif

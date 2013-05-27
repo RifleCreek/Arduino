@@ -8,6 +8,7 @@
 #include "Starfield.h"
 #include "Viewport.h"
 #include "Planet.h"
+#include "Sun.h"
 
 // Define pins used by potentiometer knobs
 #define PIN_PADDLE_L 22
@@ -33,12 +34,42 @@ PaddleControl paddle_right = PaddleControl(PIN_PADDLE_R);
 ButtonControl button_left  = ButtonControl(PIN_BUTTON_L);
 ButtonControl button_right = ButtonControl(PIN_BUTTON_R);
 ButtonControl button_start = ButtonControl(PIN_BUTTON_START);
+
+Starfield sf00(-ST7735_TFTWIDTH, -ST7735_TFTHEIGHT);
+Starfield sf01(               0, -ST7735_TFTHEIGHT);
+Starfield sf02(ST7735_TFTWIDTH,  -ST7735_TFTHEIGHT);
+Starfield sf10(-ST7735_TFTWIDTH, 0);
+Starfield sf11(               0, 0);
+Starfield sf12(ST7735_TFTWIDTH,  0);
+Starfield sf20(-ST7735_TFTWIDTH, ST7735_TFTHEIGHT);
+Starfield sf21(               0, ST7735_TFTHEIGHT);
+Starfield sf22(ST7735_TFTWIDTH,  ST7735_TFTHEIGHT);
+
+Planet mars(-40, 60, 5, RED);
+Planet earth(40, -55, 5, BLUE);
+Planet venus(-45, -50, 4, GREEN);
+Sun sun(50, 60, 19, YELLOW);
+
 // Player's Spaceship
 SpaceShip spaceship;
-Starfield starfield;
-Planet mars(-40, 60, 5, RED),
-       earth(40, -55, 5, BLUE),
-       venus(-45, 50, 4, GREEN);
+
+SpaceThing* things[] = {
+  &sf00,
+  &sf01,
+  &sf02,
+  &sf10,
+  &sf11,
+  &sf12,
+  &sf20,
+  &sf21,
+  &sf22,
+  &mars,
+  &earth,
+  &venus,
+  &sun,
+  &spaceship
+};
+uint space_thing_count = sizeof(things) / sizeof(SpaceThing*);
 
 Viewport view(
   -ST7735_TFTWIDTH/2, -ST7735_TFTHEIGHT/2,
@@ -99,8 +130,8 @@ void mode_calibrate() {
   tft.drawFastVLine(cal_x, 0, tft.height(), BLACK);
   tft.drawFastHLine(0, cal_y, tft.width(), BLACK);
   
-  cal_x = paddle_right.value(tft.width());
-  cal_y = tft.height() - paddle_left.value(tft.height());
+  cal_x = paddle_right.value(tft.width()-1);
+  cal_y = tft.height() - paddle_left.value(tft.height()-1);
 
   tft.drawCircle(tft.width()/2, tft.height(), cal_r, YELLOW);
   tft.drawFastHLine(tft.width()/2-cal_r+1, tft.height()-1, cal_r*2-1, GRAY);
@@ -122,8 +153,8 @@ void mode_calibrate() {
   tft.setCursor(46, 119);
   tft.println("engine");
 
-  if (button_start.is_pressed() ||
-      (cal_y == tft.height()-1 && cal_x >= tft.width()/2-3 && cal_x <= tft.width()/2+3) ) {
+  // if (button_start.is_pressed() ||
+  if ((cal_y == tft.height()-1 && cal_x >= tft.width()/2-3 && cal_x <= tft.width()/2+3) ) {
     spaceship.reset();
     set_main_mode(MODE_PLAY);
   }
@@ -133,33 +164,33 @@ void mode_calibrate() {
 
 // MODE_PLAY (2)
 void mode_play() {
-  starfield.erase(tft, view);
-  spaceship.erase(tft, view);
+  // DRAW
+  for (uint i = 0; i < space_thing_count; i++) {
+    if (view.overlaps(*things[i])) things[i]->draw(tft, view);
+  }
 
-  mars.erase(tft, view);
-  earth.erase(tft, view);
-  venus.erase(tft, view);
-
+  // CONTROL
   spaceship.set_thrust(
     paddle_left.value(SPACE_SHIP_THRUST_MAX));
   spaceship.set_angular_thrust(
     paddle_right.value(
       -SPACE_SHIP_ANGULAR_THRUST_MAX,
        SPACE_SHIP_ANGULAR_THRUST_MAX));
-  // spaceship.set_angular_thrust(1.0);
-    // paddle_right.value(SPACE_SHIP_THRUST_MAX));
   
-  spaceship.step();
+  // STEP
+  for (uint i = 0; i < space_thing_count; i++) {
+    things[i]->step();
+  }
+  view._x = spaceship._x - ST7735_TFTWIDTH/2;
+  view._y = spaceship._y - ST7735_TFTHEIGHT/2;
 
-  starfield.draw(tft, view);
-
-  mars.draw(tft, view);
-  earth.draw(tft, view);
-  venus.draw(tft, view);
-
-  spaceship.draw(tft, view);
-
+  // WAIT
   delay(30);
+
+  // ERASE
+  for (uint i = 0; i < space_thing_count; i++) {
+    if (view.overlaps(*things[i])) things[i]->erase(tft, view);
+  }
 
   if (button_start.is_pressed()) {
     set_main_mode(MODE_CALIBRATE);

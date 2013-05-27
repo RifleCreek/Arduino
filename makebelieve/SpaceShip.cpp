@@ -3,34 +3,41 @@
 #include "Geometry.h"
 
 void SpaceShip::reset() {
+  _precise_x = 0;
+  _precise_y = 0;
   _x = 0;
   _y = 0;
 }
 
 void SpaceShip::draw(Adafruit_ST7735 tft, Viewport view) {
-  draw_in_color(tft, view, WHITE, BLACK, RED);
+  _precise_screen_x = _precise_x - view.x1();
+  _precise_screen_y = _precise_y - view.y1();
+  _screen_direction = _direction;
+  draw_in_color(tft, _precise_screen_x, _precise_screen_y, _screen_direction,
+    WHITE, BLACK, RED);
 }
 
 void SpaceShip::erase(Adafruit_ST7735 tft, Viewport view) {
-  draw_in_color(tft, view, BLACK, BLACK, BLACK);
+  draw_in_color(tft, _precise_screen_x, _precise_screen_y, _screen_direction,
+    BLACK, BLACK, BLACK);
 }
 
-void SpaceShip::draw_in_color(Adafruit_ST7735 tft, Viewport view, 
+void SpaceShip::draw_in_color(Adafruit_ST7735 tft, float cx, float cy, float dir,
 int outline_color, int fill_color, int thrust_color) {
   int len = 4;
-  int x1 = _precise_x + cos(_direction + PI*2/3)*len - view.x1();
-  int y1 = _precise_y + sin(_direction + PI*2/3)*len - view.y1();
-  int x2 = _precise_x + cos(_direction + PI*4/3)*len - view.x1();
-  int y2 = _precise_y + sin(_direction + PI*4/3)*len - view.y1();
-  int x3 = _precise_x + cos(_direction) * len*1.5 - view.x1();
-  int y3 = _precise_y + sin(_direction) * len*1.5 - view.y1();
+  int x1 = cx + cos(dir + PI*2/3)*len;
+  int y1 = cy + sin(dir + PI*2/3)*len;
+  int x2 = cx + cos(dir + PI*4/3)*len;
+  int y2 = cy + sin(dir + PI*4/3)*len;
+  int x3 = cx + cos(dir) * len*1.5;
+  int y3 = cy + sin(dir) * len*1.5;
   tft.fillTriangle(x1, y1,  x2, y2,  x3, y3,  fill_color);
   tft.drawTriangle(x1, y1,  x2, y2,  x3, y3,  outline_color);
   tft.drawLine(
-    _precise_x + cos(_direction + PI)*len - view.x1(),
-    _precise_y + sin(_direction + PI)*len - view.y1(),
-    _precise_x + cos(_direction + PI)*(len+_thrust*2) - view.x1(),
-    _precise_y + sin(_direction + PI)*(len+_thrust*2) - view.y1(),
+    cx + cos(dir + PI)*len,
+    cy + sin(dir + PI)*len,
+    cx + cos(dir + PI)*(len+_thrust*2),
+    cy + sin(dir + PI)*(len+_thrust*2),
     thrust_color);
 }
 

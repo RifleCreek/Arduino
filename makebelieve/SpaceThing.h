@@ -12,6 +12,9 @@ public:
   float _precise_x, _precise_y;
   float _direction, _thrust, _angular_thrust;
 
+  int _screen_x, _screen_y;
+  int _erase_screen_x, _erase_screen_y;
+
   SpaceThing(void);
   SpaceThing(float x, float y);
 

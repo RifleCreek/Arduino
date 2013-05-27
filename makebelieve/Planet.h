@@ -12,11 +12,14 @@ public:
     _color = color;
   }
 
-  virtual void erase(Adafruit_ST7735 tft, Viewport view) {
-    tft.drawCircle(_x - view.x1(), _y - view.y1(), _radius, BLACK);
-  }
   virtual void draw(Adafruit_ST7735 tft, Viewport view) {
-    tft.drawCircle(_x - view.x1(), _y - view.y1(), _radius, _color);
+    _screen_x = _x - view.x1();
+    _screen_y = _y - view.y1();
+    tft.drawCircle(_screen_x, _screen_y, _radius, _color);
+  }
+
+  virtual void erase(Adafruit_ST7735 tft, Viewport view) {
+    tft.drawCircle(_screen_x, _screen_y, _radius, BLACK);
   }
 
 };
