@@ -1,31 +1,20 @@
 #include "Starfield.h"
 #include "Colors.h"
 
-Starfield::Starfield(int count)
-: SpaceThing(), _count(count) {
+Starfield::Starfield(float cx, float cy, int count)
+: SpaceThing(cx, cy, ST7735_TFTWIDTH, ST7735_TFTHEIGHT), _count(count) {
   _seed = analogRead(0);
-  _w = 128;
-  _h = 160;
-}
-
-Starfield::Starfield(float x, float y, int count)
-: SpaceThing(x, y), _count(count) {
-  _seed = analogRead(0);
-  _w = 128;
-  _h = 160;
 }
 
 
 void Starfield::draw(Adafruit_ST7735 tft, Viewport view) {
-  _screen_x = _x - view.x1();
-  _screen_y = _y - view.y1();
-  draw_or_erase(tft, _screen_x, _screen_y, false);
+  _screen_cx = _x - view.x1();
+  _screen_cy = _y - view.y1();
+  draw_or_erase(tft, _screen_cx, _screen_cy, false);
 }
 
 void Starfield::erase(Adafruit_ST7735 tft, Viewport view) {
-  // if (_screen_x != _erase_screen_x || _screen_y != _erase_screen_y) {
-    draw_or_erase(tft, _screen_x, _screen_y, true);
-  // }
+  draw_or_erase(tft, _screen_cx, _screen_cy, true);
 }
 
 void Starfield::draw_or_erase(Adafruit_ST7735 tft, int cx, int cy, bool erase = false) {

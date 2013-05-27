@@ -7,13 +7,20 @@
 #include "SpaceThing.h"
 
 class SpaceShip : public SpaceThing {
+private:
+  void init(float cx, float cy, int size) {
+    _cx = cx; _cy = cy; _size = size;
+    _x = (int)cx - size; _y = (int)cy - size;
+    _w = size*2; _h = size*2;
+  }
+
 public:
-  int _danger_level;
+  int _danger_level, _size;
   float _precise_screen_x, _precise_screen_y;
   float _screen_direction, _screen_thrust;
 
-  SpaceShip() : SpaceThing() {};
-  SpaceShip(float x, float y) : SpaceThing(x, y) {};
+  SpaceShip() { init(0, 0, 4); };
+  SpaceShip(float cx, float cy, int size) { init(cx, cy, size); }
 
   virtual void erase(Adafruit_ST7735 tft, Viewport view);
   virtual void draw(Adafruit_ST7735 tft, Viewport view);
@@ -22,7 +29,6 @@ public:
     float cx, float cy, float dir, float thrust,
     int outline_color, int fill_color, int thrust_color);
   void reset(void);
-
 };
 
 #endif

@@ -4,10 +4,23 @@
 #include <Arduino.h>
 
 class Rectangle {
+protected:
+  void init(int x, int y, int w, int h) {
+    _x = x; _y = y; _w = w; _h = h;
+  }
+
+  void init(float cx, float cy, int w, int h) {
+    _x = (int)(cx - w/2);
+    _y = (int)(cy - h/2);
+    _w = w;
+    _h = h;
+  }
+
 public:
   int _x, _y, _w, _h;
   
-  Rectangle(int x, int y, int w, int h) : _x(x), _y(y), _w(w), _h(h) {};
+  Rectangle(void) {}
+  Rectangle(int x, int y, int w, int h) { init(x, y, w, h); }
 
   inline int x1() { return _x; }
   inline int y1() { return _y; }

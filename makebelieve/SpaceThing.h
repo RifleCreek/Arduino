@@ -9,16 +9,15 @@
 
 class SpaceThing : public Rectangle {
 public:
-  float _precise_x, _precise_y;
+  float _cx, _cy;
   float _direction, _thrust, _angular_thrust;
 
-  int _screen_x, _screen_y;
-  int _erase_screen_x, _erase_screen_y;
+  int _screen_cx, _screen_cy;
 
   bool needs_erase;
 
   SpaceThing(void);
-  SpaceThing(float x, float y);
+  SpaceThing(float cx, float cy, int w, int h);
 
   virtual void step(void);
   virtual void erase(Adafruit_ST7735 tft, Viewport view) {};

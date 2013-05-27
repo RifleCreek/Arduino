@@ -184,8 +184,8 @@ void mode_play() {
   for (uint i = 0; i < space_thing_count; i++) {
     things[i]->step();
   }
-  view._x = spaceship._x - ST7735_TFTWIDTH/2;
-  view._y = spaceship._y - ST7735_TFTHEIGHT/2;
+  view._x = spaceship._cx - ST7735_TFTWIDTH/2;
+  view._y = spaceship._cy - ST7735_TFTHEIGHT/2;
 
   // WAIT
   delay(30);

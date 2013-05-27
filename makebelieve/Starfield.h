@@ -9,8 +9,7 @@ protected:
   float _seed;
 
 public:
-  Starfield(int count = 21);
-  Starfield(float x, float y, int count = 21);
+  Starfield(float cx, float cy, int count = 21);
   virtual void draw(Adafruit_ST7735 tft, Viewport view);
   virtual void erase(Adafruit_ST7735 tft, Viewport view);
 

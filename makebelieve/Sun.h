@@ -8,15 +8,15 @@ class Sun : public Planet {
 public:
   int _band_count, _band_length;
 
-  Sun(float x, float y, int radius, int color)
-  : Planet(x, y, radius, color) {
+  Sun(float cx, float cy, int radius, int color)
+  : Planet(cx, cy, radius, color) {
     _band_count = 13;
     _band_length = 10;    
     _w = (_radius + 4 + _band_length) * 2;
     _h = (_radius + 4 + _band_length) * 2;
   }
 
-  void draw_halo(Adafruit_ST7735 tft, int cx, int cy, int color) {
+  void draw_halo(Adafruit_ST7735 tft, int scx, int scy, int color) {
     for (int i = 0; i < _band_count; i++) {
       float rad = float(i) / _band_count * PI * 2;
       int x1 = cos(rad) * (_radius + 4);
@@ -24,22 +24,22 @@ public:
       int x2 = cos(rad) * (_radius + 4 + _band_length);
       int y2 = sin(rad) * (_radius + 4 + _band_length);
       tft.drawLine(
-        cx + x1, cy + y1,
-        cx + x2, cy + y2,
+        scx + x1, scy + y1,
+        scx + x2, scy + y2,
         color);
     }    
   }
 
   virtual void draw(Adafruit_ST7735 tft, Viewport view) {
-    _screen_x = _x - view.x1();
-    _screen_y = _y - view.y1();
-    tft.drawCircle(_screen_x, _screen_y, _radius, _color);
-    draw_halo(tft, _screen_x, _screen_y, _color);
+    _screen_cx = _cx - view.x1();
+    _screen_cy = _cy - view.y1();
+    tft.drawCircle(_screen_cx, _screen_cy, _radius, _color);
+    draw_halo(tft, _screen_cx, _screen_cy, _color);
   }
 
   virtual void erase(Adafruit_ST7735 tft, Viewport view) {
-    tft.drawCircle(_screen_x, _screen_y, _radius, BLACK);
-    draw_halo(tft, _screen_x, _screen_y, BLACK);
+    tft.drawCircle(_screen_cx, _screen_cy, _radius, BLACK);
+    draw_halo(tft, _screen_cx, _screen_cy, BLACK);
   }
 
 };
