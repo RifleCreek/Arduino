@@ -15,6 +15,8 @@ public:
   int _screen_x, _screen_y;
   int _erase_screen_x, _erase_screen_y;
 
+  bool needs_erase;
+
   SpaceThing(void);
   SpaceThing(float x, float y);
 

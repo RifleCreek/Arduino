@@ -166,7 +166,10 @@ void mode_calibrate() {
 void mode_play() {
   // DRAW
   for (uint i = 0; i < space_thing_count; i++) {
-    if (view.overlaps(*things[i])) things[i]->draw(tft, view);
+    if (view.overlaps(*things[i])) {
+      things[i]->draw(tft, view);
+      things[i]->needs_erase = true;
+    }
   }
 
   // CONTROL
@@ -189,7 +192,10 @@ void mode_play() {
 
   // ERASE
   for (uint i = 0; i < space_thing_count; i++) {
-    if (view.overlaps(*things[i])) things[i]->erase(tft, view);
+    if(things[i]->needs_erase) {
+      things[i]->erase(tft, view);
+      things[i]->needs_erase = false;
+    }
   }
 
   if (button_start.is_pressed()) {

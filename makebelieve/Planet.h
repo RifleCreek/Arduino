@@ -10,6 +10,8 @@ public:
   Planet(float x, float y, int radius, int color) : SpaceThing(x, y) {
     _radius = radius;
     _color = color;
+    _w = _radius * 2;
+    _h = _radius * 2;
   }
 
   virtual void draw(Adafruit_ST7735 tft, Viewport view) {

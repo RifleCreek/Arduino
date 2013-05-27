@@ -13,16 +13,20 @@ void SpaceShip::draw(Adafruit_ST7735 tft, Viewport view) {
   _precise_screen_x = _precise_x - view.x1();
   _precise_screen_y = _precise_y - view.y1();
   _screen_direction = _direction;
-  draw_in_color(tft, _precise_screen_x, _precise_screen_y, _screen_direction,
+  _screen_thrust = _thrust;
+  draw_in_color(tft,
+    _precise_screen_x, _precise_screen_y, _screen_direction, _screen_thrust,
     WHITE, BLACK, RED);
 }
 
 void SpaceShip::erase(Adafruit_ST7735 tft, Viewport view) {
-  draw_in_color(tft, _precise_screen_x, _precise_screen_y, _screen_direction,
+  draw_in_color(tft,
+    _precise_screen_x, _precise_screen_y, _screen_direction, _screen_thrust,
     BLACK, BLACK, BLACK);
 }
 
-void SpaceShip::draw_in_color(Adafruit_ST7735 tft, float cx, float cy, float dir,
+void SpaceShip::draw_in_color(Adafruit_ST7735 tft,
+float cx, float cy, float dir, float thrust,
 int outline_color, int fill_color, int thrust_color) {
   int len = 4;
   int x1 = cx + cos(dir + PI*2/3)*len;
@@ -36,8 +40,8 @@ int outline_color, int fill_color, int thrust_color) {
   tft.drawLine(
     cx + cos(dir + PI)*len,
     cy + sin(dir + PI)*len,
-    cx + cos(dir + PI)*(len+_thrust*2),
-    cy + sin(dir + PI)*(len+_thrust*2),
+    cx + cos(dir + PI)*(len+thrust*2),
+    cy + sin(dir + PI)*(len+thrust*2),
     thrust_color);
 }
 
