@@ -33,7 +33,7 @@ public:
 
   virtual void erase(Adafruit_ST7735 tft, Viewport view) {
     tft.drawCircle(_screen_x, _screen_y, _radius, BLACK);
-    draw_halo(tft, _screen_x, _screen_y, RED, 13, 10);
+    draw_halo(tft, _screen_x, _screen_y, BLACK, 13, 10);
   }
 
 };
