@@ -217,20 +217,27 @@ void mode_space() {
 }
 
 // MODE_LANDER (3)
+float planet_angle = 0.0;
 void mode_lander() {
   tft.setTextSize(1);
   tft.setTextColor(GRAY);
   tft.setCursor(64-strlen(spaceship._orbiting_planet->_name)*3, 40);
   tft.println(spaceship._orbiting_planet->_name);
 
-  if (button_start.is_pressed()) {
+  spaceship._orbiting_planet->draw_big_planet(tft, planet_angle, BLACK);
+  planet_angle += 0.02;
+  spaceship._orbiting_planet->draw_big_planet(tft, planet_angle, spaceship._orbiting_planet->_color);
+
+  delay(30);
+
+  if (button_right.is_pressed()) {
     set_main_mode(MODE_SPACE);
   }
 }
 
 // MODE_BUTTON_UP (999)
 void mode_button_up() {
-  if (!button_start.is_pressed()) {
+  if (!button_start.is_pressed() && !button_right.is_pressed()) {
     main_mode = next_mode;
   }
 }
