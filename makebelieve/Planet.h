@@ -38,16 +38,26 @@ public:
 
   virtual void step(SpaceThing* things, int thing_count) {}
 
+  int big_planet_center_x(Adafruit_ST7735 tft) {
+    return tft.width()/2;
+  };
+  
+  int big_planet_center_y(Adafruit_ST7735 tft) {
+    return tft.height() + _radius*10/2;
+  }
+
   void draw_big_planet(Adafruit_ST7735 tft, float angle, int color) {
     randomSeed(seed());
     int bumps = (int)(TWO_PI*_radius);
     int last_x = 0, last_y = 0;
+    int center_x = big_planet_center_x(tft);
+    int center_y = big_planet_center_y(tft);
     for (int i = 0; i <= bumps; i++) {
       int bump_height = random(60);
       float theta = i*(TWO_PI/bumps);
       int d = ((_radius * 10) + (bump_height - 30)/10);
-      int x = cos(angle + theta) * d + tft.width()/2;
-      int y = sin(angle + theta) * d + tft.height() + _radius*10/2;
+      int x = cos(angle + theta) * d + center_x;
+      int y = sin(angle + theta) * d + center_y;
       if (last_x != 0 || last_y != 0) {
         tft.drawLine(last_x, last_y, x, y, color);
       }

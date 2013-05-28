@@ -17,16 +17,21 @@ void Starfield::erase(Adafruit_ST7735 tft, Viewport view) {
   draw_or_erase(tft, _screen_cx, _screen_cy, true);
 }
 
-void Starfield::draw_or_erase(Adafruit_ST7735 tft, int cx, int cy, bool erase = false) {
+void Starfield::draw_or_erase(Adafruit_ST7735 tft, int scx, int scy, bool erase = false) {
   int i, x, y, color;
   randomSeed(_seed);
   for (i = 0; i < _count; i++) {
-    x = cx + random(_w);
-    y = cy + random(_h);
+    x = scx + random(_w);
+    y = scy + random(_h);
     color = (random(2) == 0) ? GRAY : DARK_GRAY;
     if (erase) color = BLACK;
-    tft.drawPixel(x, y, color);
+    draw_pixel(tft, x, y, color);
   }
+}
+
+// Allow this method to be overridden in subclasses
+void Starfield::draw_pixel(Adafruit_ST7735 tft, int x, int y, int color) {
+  tft.drawPixel(x, y, color);
 }
 
 void Starfield::step(void) {

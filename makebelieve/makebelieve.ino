@@ -6,6 +6,7 @@
 #include "Controls.h"
 #include "SpaceShip.h"
 #include "Starfield.h"
+#include "StarfieldMasked.h"
 #include "Viewport.h"
 #include "Planet.h"
 #include "Sun.h"
@@ -44,6 +45,8 @@ Starfield sf12(ST7735_TFTWIDTH,  0);
 Starfield sf20(-ST7735_TFTWIDTH, ST7735_TFTHEIGHT);
 Starfield sf21(               0, ST7735_TFTHEIGHT);
 Starfield sf22(ST7735_TFTWIDTH,  ST7735_TFTHEIGHT);
+
+StarfieldMasked sf_lander(0, 0, 80);
 
 Planet mars(-45, -50, 5, RED, (char*)"Mars");
 Planet earth(40, -55, 5, BLUE, (char*)"Earth");
@@ -84,6 +87,10 @@ Viewport view(
    ST7735_TFTWIDTH,    ST7735_TFTHEIGHT);
 
 Viewport lander_view(
+  -ST7735_TFTWIDTH/2, -ST7735_TFTHEIGHT/2,
+   ST7735_TFTWIDTH,    ST7735_TFTHEIGHT);
+
+Viewport zero_view(
   -ST7735_TFTWIDTH/2, -ST7735_TFTHEIGHT/2,
    ST7735_TFTWIDTH,    ST7735_TFTHEIGHT);
 
@@ -157,6 +164,7 @@ void mode_calibrate() {
   
   cal_x = paddle_right.value(tft.width()-1);
   cal_y = tft.height() - paddle_left.value(tft.height()-1);
+  if (cal_y > tft.height()-1) cal_y = tft.height()-1;
 
   tft.drawCircle(tft.width()/2, tft.height(), cal_r, YELLOW);
   tft.drawFastHLine(tft.width()/2-cal_r+1, tft.height()-1, cal_r*2-1, GRAY);
@@ -239,6 +247,11 @@ float prev_player_cx, prev_player_cy, prev_player_dir;
 void mode_lander() {
   if (mode_lander_init) {
     mode_lander_init = false;
+    sf_lander.set_mask(
+      spaceship._orbiting_planet->big_planet_center_x(tft),
+      spaceship._orbiting_planet->big_planet_center_y(tft),
+      spaceship._orbiting_planet->_radius * 10);
+    // sf_lander.set_mask(0, 0, 70);
     prev_player_cx = spaceship._cx;
     prev_player_cy = spaceship._cy;
     prev_player_dir = spaceship._direction;
@@ -254,6 +267,7 @@ void mode_lander() {
 
   spaceship.erase(tft, lander_view);
   spaceship.step();
+  sf_lander.draw(tft, zero_view);
   spaceship.draw(tft, lander_view);
 
   spaceship._orbiting_planet->draw_big_planet(tft, planet_angle, BLACK);
