@@ -28,7 +28,7 @@ public:
   SpaceShip() { init(0, 0, 4); };
   SpaceShip(float cx, float cy, int size) { init(cx, cy, size); }
 
-  virtual void step(SpaceThing* things[], uint thing_count);
+  virtual void interact(SpaceThing* things[], uint thing_count);
   virtual void erase(Adafruit_ST7735 tft, Viewport view);
   virtual void draw(Adafruit_ST7735 tft, Viewport view);
   virtual void draw_hov(Adafruit_ST7735 tft);

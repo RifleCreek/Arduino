@@ -84,8 +84,8 @@ void SpaceShip::draw_hov_in_color(Adafruit_ST7735 tft, int thrust_color, int ang
   }
 }
 
-void SpaceShip::step(SpaceThing* things[], uint thing_count) {
-  SpaceThing::step(things, thing_count);
+void SpaceShip::interact(SpaceThing* things[], uint thing_count) {
+  SpaceThing::interact(things, thing_count);
   bool orbiting_something = false;
   for (uint i = 0; i < thing_count; i++) {
     if (things[i]->can_orbit() && overlaps(*things[i])) {

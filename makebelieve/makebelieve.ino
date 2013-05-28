@@ -75,6 +75,10 @@ Viewport view(
   -ST7735_TFTWIDTH/2, -ST7735_TFTHEIGHT/2,
    ST7735_TFTWIDTH,    ST7735_TFTHEIGHT);
 
+Viewport lander_view(
+  -ST7735_TFTWIDTH/2, -ST7735_TFTHEIGHT/2,
+   ST7735_TFTWIDTH,    ST7735_TFTHEIGHT);
+
 // Main Mode determines which "state" the game is in
 #define MODE_TITLE     0
 #define MODE_CALIBRATE 1
@@ -89,6 +93,17 @@ void set_main_mode(int mode) {
   tft.fillScreen(BLACK);
   main_mode = MODE_BUTTON_UP;
   next_mode = mode;
+}
+
+void player_control(SpaceShip& spaceship,
+PaddleControl& pad_thrust,
+PaddleControl& pad_turn) {
+  spaceship.set_thrust(
+    pad_thrust.value(spaceship._thrust_max));
+  spaceship.set_angular_thrust(
+    pad_turn.value(
+      -spaceship._angular_thrust_max,
+       spaceship._angular_thrust_max));
 }
 
 // MODE_TITLE (0)
@@ -171,7 +186,8 @@ void mode_space() {
     if(things[i]->_needs_erase) {
       things[i]->erase(tft, view);
     }
-    things[i]->step(things, space_thing_count);
+    things[i]->interact(things, space_thing_count);
+    things[i]->step();
     if (view.overlaps(*things[i])) {
       things[i]->draw(tft, view);
       things[i]->_needs_erase = true;
@@ -185,18 +201,10 @@ void mode_space() {
   }
 
   // CONTROL
-  spaceship.set_thrust(
-    paddle_left.value(spaceship._thrust_max));
-  spaceship.set_angular_thrust(
-    paddle_right.value(
-      -spaceship._angular_thrust_max,
-       spaceship._angular_thrust_max));
+  player_control(spaceship, paddle_left, paddle_right);
   
   // Explorer mode
-  if (space_explorer_mode) {
-    view._x = spaceship._cx - ST7735_TFTWIDTH/2;
-    view._y = spaceship._cy - ST7735_TFTHEIGHT/2;
-  }
+  if (space_explorer_mode) view.center_on(spaceship);
 
   // WAIT
   delay(30);
@@ -218,19 +226,43 @@ void mode_space() {
 
 // MODE_LANDER (3)
 float planet_angle = 0.0;
+bool mode_lander_init = true;
+float prev_player_cx, prev_player_cy, prev_player_dir;
 void mode_lander() {
+  if (mode_lander_init) {
+    mode_lander_init = false;
+    prev_player_cx = spaceship._cx;
+    prev_player_cy = spaceship._cy;
+    prev_player_dir = spaceship._direction;
+    spaceship._cx = 0;
+    spaceship._cy = -20;
+    spaceship._direction = 0;
+    lander_view.center_x_on(spaceship);
+  }
   tft.setTextSize(1);
   tft.setTextColor(GRAY);
   tft.setCursor(64-strlen(spaceship._orbiting_planet->_name)*3, 40);
   tft.println(spaceship._orbiting_planet->_name);
 
+  spaceship.erase(tft, lander_view);
+  spaceship.step();
+  spaceship.draw(tft, lander_view);
+
   spaceship._orbiting_planet->draw_big_planet(tft, planet_angle, BLACK);
-  planet_angle += 0.02;
+  planet_angle = -spaceship._cx / TWO_PI / 10;
   spaceship._orbiting_planet->draw_big_planet(tft, planet_angle, spaceship._orbiting_planet->_color);
+
+  // CONTROL
+  player_control(spaceship, paddle_left, paddle_right);
+  lander_view.center_x_on(spaceship);
 
   delay(30);
 
   if (button_right.is_pressed()) {
+    mode_lander_init = true;
+    spaceship._cx = prev_player_cx;
+    spaceship._cy = prev_player_cy;
+    spaceship._direction = prev_player_dir;
     set_main_mode(MODE_SPACE);
   }
 }
