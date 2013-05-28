@@ -43,15 +43,29 @@ public:
     int bumps = (int)(TWO_PI*_radius);
     int last_x = 0, last_y = 0;
     for (int i = 0; i <= bumps; i++) {
-      int bump_height = random(6) - 3;
-      int x = tft.width()/2 + cos(angle + i*(TWO_PI/bumps)) * ((_radius * 10) + bump_height);
-      int y = tft.height() + sin(angle + i*(TWO_PI/bumps)) * ((_radius * 10) + bump_height);
+      int bump_height = random(60);
+      float theta = i*(TWO_PI/bumps);
+      int d = ((_radius * 10) + (bump_height - 30)/10);
+      int x = cos(angle + theta) * d + tft.width()/2;
+      int y = sin(angle + theta) * d + tft.height() + _radius*10/2;
       if (last_x != 0 || last_y != 0) {
         tft.drawLine(last_x, last_y, x, y, color);
       }
       last_x = x; last_y = y;
     }
   }
+
+  // Recreate the conditions of the random number generator for the big planet,
+  // but instead of drawing it, grab the bump height and return.
+  float big_planet_bump_height(float angle) {
+    randomSeed(seed());
+    int bumps = (int)(TWO_PI*_radius);
+    for (int i = 0; i <= bumps; i++) {
+      float bump_height = ((float)random(60) - 30)/10;
+      return bump_height;
+    }
+  }
+
 };
 
 #endif

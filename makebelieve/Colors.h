@@ -16,6 +16,7 @@
 #define MAGENTA   COLOR(255, 0, 255)
 #define YELLOW    COLOR(128, 128, 0)
 #define CYAN      COLOR(0, 255, 255)
+#define DARK_CYAN COLOR(0, 120, 120)
 #define ORANGE    COLOR(255, 128, 0)
 
 #define BLACK     COLOR(0, 0, 0)

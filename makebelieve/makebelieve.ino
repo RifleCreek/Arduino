@@ -45,10 +45,14 @@ Starfield sf20(-ST7735_TFTWIDTH, ST7735_TFTHEIGHT);
 Starfield sf21(               0, ST7735_TFTHEIGHT);
 Starfield sf22(ST7735_TFTWIDTH,  ST7735_TFTHEIGHT);
 
-Planet mars(-40, 60, 5, RED, "Mars");
-Planet earth(40, -55, 5, BLUE, "Earth");
-Planet venus(-45, -50, 4, GREEN, "Venus");
-Sun sun(50, 60, 19, YELLOW, "Sun");
+Planet mars(-45, -50, 5, RED, (char*)"Mars");
+Planet earth(40, -55, 5, BLUE, (char*)"Earth");
+Planet venus(-40, 60, 4, GREEN, (char*)"Venus");
+Planet mercury(95, 90, 3, ORANGE, (char*)"Mercury");
+Planet jupiter(195, -100, 10, ORANGE, (char*)"Jupiter");
+Planet uranus(10, 200, 7, DARK_CYAN, (char*)"Uranus");
+Planet neptune(235, 120, 9, GRAY, (char*)"Neptune");
+Sun sun(50, 60, 19, YELLOW, (char*)"Sun");
 
 // Player's Spaceship
 SpaceShip spaceship;
@@ -66,6 +70,10 @@ SpaceThing* things[] = {
   &mars,
   &earth,
   &venus,
+  &mercury,
+  &jupiter,
+  &uranus,
+  &neptune,
   &sun,
   &spaceship
 };
@@ -258,7 +266,7 @@ void mode_lander() {
 
   delay(30);
 
-  if (button_right.is_pressed()) {
+  if (spaceship._cy < -tft.height()/2) { // button_right.is_pressed()
     mode_lander_init = true;
     spaceship._cx = prev_player_cx;
     spaceship._cy = prev_player_cy;
