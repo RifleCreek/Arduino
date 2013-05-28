@@ -165,15 +165,23 @@ void mode_calibrate() {
 
 // MODE_SPACE (2)
 void mode_space() {
-  // DRAW
+  // EVENT LOOP
   for (uint i = 0; i < space_thing_count; i++) {
+    if(things[i]->needs_erase) {
+      things[i]->erase(tft, view);
+    }
+    things[i]->step();
     if (view.overlaps(*things[i])) {
       things[i]->draw(tft, view);
       things[i]->needs_erase = true;
     }
   }
-  // DRAW HOV
-  for (uint i = 0; i < space_thing_count; i++) things[i]->draw_hov(tft);
+
+  // HOV
+  for (uint i = 0; i < space_thing_count; i++) {
+    things[i]->erase_hov(tft);
+    things[i]->draw_hov(tft);
+  }
 
   // CONTROL
   spaceship.set_thrust(
@@ -183,11 +191,6 @@ void mode_space() {
       -spaceship._angular_thrust_max,
        spaceship._angular_thrust_max));
   
-  // STEP
-  for (uint i = 0; i < space_thing_count; i++) {
-    things[i]->step();
-  }
-
   // Explorer mode
   if (space_explorer_mode) {
     view._x = spaceship._cx - ST7735_TFTWIDTH/2;
@@ -196,16 +199,6 @@ void mode_space() {
 
   // WAIT
   delay(30);
-
-  // ERASE
-  for (uint i = 0; i < space_thing_count; i++) {
-    if(things[i]->needs_erase) {
-      things[i]->erase(tft, view);
-      things[i]->needs_erase = false;
-    }
-  }
-  // ERASE HOV
-  for (uint i = 0; i < space_thing_count; i++) things[i]->erase_hov(tft);
 
   if (button_start.is_pressed()) {
     if (space_explorer_mode) {
