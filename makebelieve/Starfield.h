@@ -12,8 +12,9 @@ public:
   Starfield(float cx, float cy, int count = 21);
   virtual void draw(Adafruit_ST7735 tft, Viewport view);
   virtual void erase(Adafruit_ST7735 tft, Viewport view);
+  virtual void step(void);
 
-  void draw_or_erase(Adafruit_ST7735 tft, int cx, int cy, bool erase);
+  virtual void draw_or_erase(Adafruit_ST7735 tft, int cx, int cy, bool erase);
 };
 
 #endif

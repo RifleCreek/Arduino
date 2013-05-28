@@ -45,17 +45,24 @@ int outline_color, int fill_color, int thrust_color) {
 }
 
 void SpaceShip::draw_hov(Adafruit_ST7735 tft) {
-  int thrust_color = DARK_RED;
-  int angular_thrust_color = DARK_BLUE;
+  draw_hov_in_color(tft, DARK_RED, DARK_BLUE);
+}
+
+void SpaceShip::erase_hov(Adafruit_ST7735 tft) {
+  tft.drawFastVLine(0, 0, tft.height(), BLACK);
+  tft.drawFastHLine(0, 0, tft.width(), BLACK);
+}
+
+void SpaceShip::draw_hov_in_color(Adafruit_ST7735 tft, int thrust_color, int angular_thrust_color) {
   int thrust_h, angular_thrust_w;
 
   // Thrust
-  thrust_h = _thrust * tft.height() / SPACE_SHIP_THRUST_MAX;
+  thrust_h = _thrust * tft.height() / _thrust_max;
   tft.drawFastVLine(0, tft.height()-thrust_h, thrust_h, thrust_color);
 
   // Directional Thrust
-  angular_thrust_w = abs((int)(_angular_thrust * tft.width())) /
-                     SPACE_SHIP_ANGULAR_THRUST_MAX;
+  angular_thrust_w = abs((int)(_angular_thrust * tft.width()/2)) /
+                     _angular_thrust_max;
   if (_angular_thrust < 0) {
     tft.drawFastHLine(tft.width()/2 - angular_thrust_w, 0, angular_thrust_w, angular_thrust_color);
   } else {

@@ -9,7 +9,10 @@ ButtonControl::ButtonControl(int pin) : InputControl(pin) {
 }
 
 float PaddleControl::value(float max_value) {
-  return (float)(analogRead(_pin) * max_value) / ANALOG_MAX;
+  float read_value = (float)(analogRead(_pin) * max_value) / ANALOG_MAX;
+  if (read_value < 0) read_value = 0;
+  if (read_value > max_value) read_value = max_value;
+  return read_value;
 }
 
 float PaddleControl::value(float min_value, float max_value) {

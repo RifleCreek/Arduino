@@ -8,6 +8,13 @@
 #include "Viewport.h"
 
 class SpaceThing : public Rectangle {
+protected:
+  void init(void) {
+    _direction = 0;
+    _thrust = 0;
+    _angular_thrust = 0;
+  }
+
 public:
   float _cx, _cy;
   float _direction, _thrust, _angular_thrust;
@@ -17,12 +24,14 @@ public:
   bool needs_erase;
 
   SpaceThing(void);
+  SpaceThing(int x, int y, int w, int h);
   SpaceThing(float cx, float cy, int w, int h);
 
   virtual void step(void);
-  virtual void erase(Adafruit_ST7735 tft, Viewport view) {};
   virtual void draw(Adafruit_ST7735 tft, Viewport view) {};
+  virtual void erase(Adafruit_ST7735 tft, Viewport view) {};
   virtual void draw_hov(Adafruit_ST7735 tft) {};
+  virtual void erase_hov(Adafruit_ST7735 tft) {};
 
   void set_thrust(float thrust) { _thrust = thrust; }
   void set_angular_thrust(float thrust) { _angular_thrust = thrust; }

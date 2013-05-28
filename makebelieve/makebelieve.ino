@@ -78,10 +78,11 @@ Viewport view(
 // Main Mode determines which "state" the game is in
 #define MODE_TITLE     0
 #define MODE_CALIBRATE 1
-#define MODE_PLAY      2
-#define MODE_BUTTON_UP 3
+#define MODE_SPACE     2
+#define MODE_BUTTON_UP 999
 int main_mode = MODE_TITLE;
 int next_mode = MODE_TITLE;
+bool space_explorer_mode = false;
 
 void set_main_mode(int mode) {
   tft.fillScreen(BLACK);
@@ -156,14 +157,14 @@ void mode_calibrate() {
   // if (button_start.is_pressed() ||
   if ((cal_y == tft.height()-1 && cal_x >= tft.width()/2-3 && cal_x <= tft.width()/2+3) ) {
     spaceship.reset();
-    set_main_mode(MODE_PLAY);
+    set_main_mode(MODE_SPACE);
   }
    
   delay(30);
 }
 
-// MODE_PLAY (2)
-void mode_play() {
+// MODE_SPACE (2)
+void mode_space() {
   // DRAW
   for (uint i = 0; i < space_thing_count; i++) {
     if (view.overlaps(*things[i])) {
@@ -171,21 +172,27 @@ void mode_play() {
       things[i]->needs_erase = true;
     }
   }
+  // DRAW HOV
+  for (uint i = 0; i < space_thing_count; i++) things[i]->draw_hov(tft);
 
   // CONTROL
   spaceship.set_thrust(
-    paddle_left.value(SPACE_SHIP_THRUST_MAX));
+    paddle_left.value(spaceship._thrust_max));
   spaceship.set_angular_thrust(
     paddle_right.value(
-      -SPACE_SHIP_ANGULAR_THRUST_MAX,
-       SPACE_SHIP_ANGULAR_THRUST_MAX));
+      -spaceship._angular_thrust_max,
+       spaceship._angular_thrust_max));
   
   // STEP
   for (uint i = 0; i < space_thing_count; i++) {
     things[i]->step();
   }
-  view._x = spaceship._cx - ST7735_TFTWIDTH/2;
-  view._y = spaceship._cy - ST7735_TFTHEIGHT/2;
+
+  // Explorer mode
+  if (space_explorer_mode) {
+    view._x = spaceship._cx - ST7735_TFTWIDTH/2;
+    view._y = spaceship._cy - ST7735_TFTHEIGHT/2;
+  }
 
   // WAIT
   delay(30);
@@ -197,9 +204,17 @@ void mode_play() {
       things[i]->needs_erase = false;
     }
   }
+  // ERASE HOV
+  for (uint i = 0; i < space_thing_count; i++) things[i]->erase_hov(tft);
 
   if (button_start.is_pressed()) {
-    set_main_mode(MODE_CALIBRATE);
+    if (space_explorer_mode) {
+      space_explorer_mode = false;
+      set_main_mode(MODE_CALIBRATE);
+    } else {
+      space_explorer_mode = true;
+      set_main_mode(MODE_SPACE);
+    }
   }
 }
 
@@ -226,7 +241,7 @@ void loop() {
   switch(main_mode) {
     case MODE_TITLE:     mode_title();     break;
     case MODE_CALIBRATE: mode_calibrate(); break;
-    case MODE_PLAY:      mode_play();      break;
+    case MODE_SPACE:     mode_space();     break;
     case MODE_BUTTON_UP: mode_button_up(); break;
   }
 }

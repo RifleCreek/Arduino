@@ -2,13 +2,17 @@
 
 SpaceThing::SpaceThing(void) {
   Rectangle::init(0.0f, 0.0f, 6, 6);
+  SpaceThing::init();
+}
+
+SpaceThing::SpaceThing(int x, int y, int w, int h) : _cx(x+w/2), _cy(y+h/2) {
+  Rectangle::init(x, y, w, h);
+  SpaceThing::init();
 }
 
 SpaceThing::SpaceThing(float cx, float cy, int w, int h) : _cx(cx), _cy(cy) {
   Rectangle::init(cx, cy, w, h);
-  _direction = 0;
-  _thrust = 0;
-  _angular_thrust = 0;
+  SpaceThing::init();
 }
 
 void SpaceThing::step(void) {

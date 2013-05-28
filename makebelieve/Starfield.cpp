@@ -21,10 +21,14 @@ void Starfield::draw_or_erase(Adafruit_ST7735 tft, int cx, int cy, bool erase = 
   int i, x, y, color;
   randomSeed(_seed);
   for (i = 0; i < _count; i++) {
-    x = cx + random(_w) - _w/2;
-    y = cy + random(_h) - _h/2;
+    x = cx + random(_w);
+    y = cy + random(_h);
     color = (random(2) == 0) ? GRAY : DARK_GRAY;
     if (erase) color = BLACK;
     tft.drawPixel(x, y, color);
   }
+}
+
+void Starfield::step(void) {
+  // Starfields don't move or turn, so do nothing
 }
