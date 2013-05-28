@@ -9,6 +9,26 @@ void SpaceShip::reset() {
   _y = -_h/2;
 }
 
+void SpaceShip::save_state() {
+  _saved_cx = _cx;
+  _saved_cy = _cy;
+  _saved_direction = _direction;
+}
+
+void SpaceShip::save_size() {
+  _saved_size = _size;  
+}
+
+void SpaceShip::restore_state() {
+  _cx = _saved_cx;
+  _cy = _saved_cy;
+  _direction = _saved_direction;
+}
+
+void SpaceShip::restore_size() {
+  _size = _saved_size;  
+}
+
 void SpaceShip::draw(Adafruit_ST7735 tft, Viewport view) {
   _screen_cx = _cx - view.x1();
   _screen_cy = _cy - view.y1();

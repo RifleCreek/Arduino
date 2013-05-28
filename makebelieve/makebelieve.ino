@@ -99,6 +99,7 @@ Viewport zero_view(
 #define MODE_CALIBRATE   1
 #define MODE_SPACE       2
 #define MODE_PLANETSCAPE 3
+#define MODE_LANDER      4
 #define MODE_BUTTON_UP 999
 int main_mode = MODE_TITLE;
 int next_mode = MODE_TITLE;
@@ -226,10 +227,11 @@ void mode_space() {
   delay(30);
 
   if (button_right.is_pressed() && spaceship._orbiting_planet != NULL) {
+    mode_planetscape_init_for_descent();
     set_main_mode(MODE_PLANETSCAPE);
   }
 
-  if (button_start.is_pressed()) {
+  if (button_left.is_pressed()) {
     if (space_explorer_mode) {
       space_explorer_mode = false;
       set_main_mode(MODE_CALIBRATE);
@@ -240,25 +242,31 @@ void mode_space() {
   }
 }
 
+int planet_surface = 0;
+void mode_planetscape_init_for_descent() {
+  sf_planetscape.set_mask(
+    spaceship._orbiting_planet->big_planet_center_x(tft),
+    spaceship._orbiting_planet->big_planet_center_y(tft),
+    spaceship._orbiting_planet->_radius * 10);
+  planet_surface = spaceship._orbiting_planet->big_planet_center_y(tft) -
+    (spaceship._orbiting_planet->_radius * 10) - 5 -
+    tft.height()/2;
+  spaceship.save_state();
+  spaceship._cx = 0;
+  spaceship._cy = -20;
+  spaceship._direction = PI/2;
+  planetscape_view.center_x_on(spaceship);  
+}
+
+void mode_planetscape_init_for_ascent() {
+  spaceship.restore_size();
+  spaceship._cx = 0;
+  spaceship._cy = planet_surface - 5 - tft.height()/2;
+}
+
 // MODE_PLANETSCAPE (3)
 float planet_angle = 0.0;
-bool mode_planetscape_init = true;
-float prev_player_cx, prev_player_cy, prev_player_dir;
 void mode_planetscape() {
-  if (mode_planetscape_init) {
-    mode_planetscape_init = false;
-    sf_planetscape.set_mask(
-      spaceship._orbiting_planet->big_planet_center_x(tft),
-      spaceship._orbiting_planet->big_planet_center_y(tft),
-      spaceship._orbiting_planet->_radius * 10);
-    prev_player_cx = spaceship._cx;
-    prev_player_cy = spaceship._cy;
-    prev_player_dir = spaceship._direction;
-    spaceship._cx = 0;
-    spaceship._cy = -20;
-    spaceship._direction = 0;
-    planetscape_view.center_x_on(spaceship);
-  }
   tft.setTextSize(1);
   tft.setTextColor(GRAY);
   tft.setCursor(64-strlen(spaceship._orbiting_planet->_name)*3, 40);
@@ -279,18 +287,56 @@ void mode_planetscape() {
 
   delay(30);
 
-  if (spaceship._cy < -tft.height()/2) { // button_right.is_pressed()
-    mode_planetscape_init = true;
-    spaceship._cx = prev_player_cx;
-    spaceship._cy = prev_player_cy;
-    spaceship._direction = prev_player_dir;
+  if (spaceship._cy < -tft.height()/2) { // leaves "upward"
+    spaceship.restore_state();
     set_main_mode(MODE_SPACE);
+  }
+
+  if (spaceship._cy >= planet_surface) {
+    mode_lander_init_for_descent();
+    set_main_mode(MODE_LANDER);
+  }
+}
+
+void mode_lander_init_for_descent() {
+  planet_surface = tft.height() - 15;
+  spaceship._cx = 0;
+  spaceship._cy = -40;
+  spaceship._direction = -PI/2;
+
+  spaceship.save_size();
+  spaceship._size = 6;
+}
+
+float lander_gravity = 0;
+void mode_lander(void) {
+  lander_gravity = (spaceship._orbiting_planet->_radius / 10.0);
+  spaceship.erase(tft, zero_view);
+  spaceship.step();
+  spaceship._cy += lander_gravity;
+  spaceship.draw(tft, zero_view);
+
+  tft.drawFastHLine(0, tft.height()-5, tft.width(), spaceship._orbiting_planet->_color);
+  tft.drawFastHLine(0, tft.height()-4, tft.width(), spaceship._orbiting_planet->_color);
+  tft.drawFastHLine(0, tft.height()-3, tft.width(), spaceship._orbiting_planet->_color);
+  tft.drawFastHLine(0, tft.height()-2, tft.width(), spaceship._orbiting_planet->_color);
+
+  // CONTROL
+  player_control(spaceship, paddle_left, paddle_right);
+
+  delay(30);
+
+  if (spaceship._cy < -tft.height()/2) { // leaves "upward"
+    mode_planetscape_init_for_ascent();
+    set_main_mode(MODE_PLANETSCAPE);
   }
 }
 
 // MODE_BUTTON_UP (999)
 void mode_button_up() {
-  if (!button_start.is_pressed() && !button_right.is_pressed()) {
+  if (!button_start.is_pressed() && 
+      !button_right.is_pressed() &&
+      !button_left.is_pressed()) {
     main_mode = next_mode;
   }
 }
@@ -299,12 +345,6 @@ void setup() {
   tft.initR();
   tft.fillScreen(BLACK);
   Serial.begin(9600);
-
-  Serial.print("view ");
-  Serial.print(view.x1());
-  Serial.print(", ");
-  Serial.print(view.y1());
-  Serial.print("\n");
 }
 
 void loop() {
@@ -313,6 +353,12 @@ void loop() {
     case MODE_CALIBRATE:   mode_calibrate();   break;
     case MODE_SPACE:       mode_space();       break;
     case MODE_PLANETSCAPE: mode_planetscape(); break;
+    case MODE_LANDER:      mode_lander();      break;
     case MODE_BUTTON_UP:   mode_button_up();   break;
+  }
+  if (button_start.is_pressed() &&
+      main_mode != MODE_TITLE && 
+      main_mode != MODE_BUTTON_UP) {
+    set_main_mode(MODE_TITLE);
   }
 }

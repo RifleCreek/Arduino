@@ -21,6 +21,8 @@ public:
   float _precise_screen_x, _precise_screen_y;
   float _screen_direction, _screen_thrust;
 
+  float _saved_cx, _saved_cy, _saved_direction, _saved_size;
+
   bool _orbit_text_needs_erase;
   Planet* _former_orbiting_planet;
   Planet* _orbiting_planet;
@@ -38,7 +40,12 @@ public:
     int outline_color, int fill_color, int thrust_color);
   void draw_hov_in_color(Adafruit_ST7735 tft,
     int thrust_color, int angular_thrust_color);
+
   void reset(void);
+  void save_state(void);
+  void restore_state(void);
+  void save_size(void);
+  void restore_size(void);
 };
 
 #endif
