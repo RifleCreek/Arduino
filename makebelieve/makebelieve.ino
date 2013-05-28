@@ -46,7 +46,7 @@ Starfield sf20(-ST7735_TFTWIDTH, ST7735_TFTHEIGHT);
 Starfield sf21(               0, ST7735_TFTHEIGHT);
 Starfield sf22(ST7735_TFTWIDTH,  ST7735_TFTHEIGHT);
 
-StarfieldMasked sf_lander(0, 0, 80);
+StarfieldMasked sf_planetscape(0, 0, 80);
 
 Planet mars(-45, -50, 5, RED, (char*)"Mars");
 Planet earth(40, -55, 5, BLUE, (char*)"Earth");
@@ -86,7 +86,7 @@ Viewport view(
   -ST7735_TFTWIDTH/2, -ST7735_TFTHEIGHT/2,
    ST7735_TFTWIDTH,    ST7735_TFTHEIGHT);
 
-Viewport lander_view(
+Viewport planetscape_view(
   -ST7735_TFTWIDTH/2, -ST7735_TFTHEIGHT/2,
    ST7735_TFTWIDTH,    ST7735_TFTHEIGHT);
 
@@ -95,10 +95,10 @@ Viewport zero_view(
    ST7735_TFTWIDTH,    ST7735_TFTHEIGHT);
 
 // Main Mode determines which "state" the game is in
-#define MODE_TITLE     0
-#define MODE_CALIBRATE 1
-#define MODE_SPACE     2
-#define MODE_LANDER    3
+#define MODE_TITLE       0
+#define MODE_CALIBRATE   1
+#define MODE_SPACE       2
+#define MODE_PLANETSCAPE 3
 #define MODE_BUTTON_UP 999
 int main_mode = MODE_TITLE;
 int next_mode = MODE_TITLE;
@@ -226,7 +226,7 @@ void mode_space() {
   delay(30);
 
   if (button_right.is_pressed() && spaceship._orbiting_planet != NULL) {
-    set_main_mode(MODE_LANDER);
+    set_main_mode(MODE_PLANETSCAPE);
   }
 
   if (button_start.is_pressed()) {
@@ -240,35 +240,34 @@ void mode_space() {
   }
 }
 
-// MODE_LANDER (3)
+// MODE_PLANETSCAPE (3)
 float planet_angle = 0.0;
-bool mode_lander_init = true;
+bool mode_planetscape_init = true;
 float prev_player_cx, prev_player_cy, prev_player_dir;
-void mode_lander() {
-  if (mode_lander_init) {
-    mode_lander_init = false;
-    sf_lander.set_mask(
+void mode_planetscape() {
+  if (mode_planetscape_init) {
+    mode_planetscape_init = false;
+    sf_planetscape.set_mask(
       spaceship._orbiting_planet->big_planet_center_x(tft),
       spaceship._orbiting_planet->big_planet_center_y(tft),
       spaceship._orbiting_planet->_radius * 10);
-    // sf_lander.set_mask(0, 0, 70);
     prev_player_cx = spaceship._cx;
     prev_player_cy = spaceship._cy;
     prev_player_dir = spaceship._direction;
     spaceship._cx = 0;
     spaceship._cy = -20;
     spaceship._direction = 0;
-    lander_view.center_x_on(spaceship);
+    planetscape_view.center_x_on(spaceship);
   }
   tft.setTextSize(1);
   tft.setTextColor(GRAY);
   tft.setCursor(64-strlen(spaceship._orbiting_planet->_name)*3, 40);
   tft.println(spaceship._orbiting_planet->_name);
 
-  spaceship.erase(tft, lander_view);
+  spaceship.erase(tft, planetscape_view);
   spaceship.step();
-  sf_lander.draw(tft, zero_view);
-  spaceship.draw(tft, lander_view);
+  sf_planetscape.draw(tft, zero_view);
+  spaceship.draw(tft, planetscape_view);
 
   spaceship._orbiting_planet->draw_big_planet(tft, planet_angle, BLACK);
   planet_angle = -spaceship._cx / TWO_PI / 10;
@@ -276,12 +275,12 @@ void mode_lander() {
 
   // CONTROL
   player_control(spaceship, paddle_left, paddle_right);
-  lander_view.center_x_on(spaceship);
+  planetscape_view.center_x_on(spaceship);
 
   delay(30);
 
   if (spaceship._cy < -tft.height()/2) { // button_right.is_pressed()
-    mode_lander_init = true;
+    mode_planetscape_init = true;
     spaceship._cx = prev_player_cx;
     spaceship._cy = prev_player_cy;
     spaceship._direction = prev_player_dir;
@@ -310,10 +309,10 @@ void setup() {
 
 void loop() {
   switch(main_mode) {
-    case MODE_TITLE:     mode_title();     break;
-    case MODE_CALIBRATE: mode_calibrate(); break;
-    case MODE_SPACE:     mode_space();     break;
-    case MODE_LANDER:    mode_lander();    break;
-    case MODE_BUTTON_UP: mode_button_up(); break;
+    case MODE_TITLE:       mode_title();       break;
+    case MODE_CALIBRATE:   mode_calibrate();   break;
+    case MODE_SPACE:       mode_space();       break;
+    case MODE_PLANETSCAPE: mode_planetscape(); break;
+    case MODE_BUTTON_UP:   mode_button_up();   break;
   }
 }
