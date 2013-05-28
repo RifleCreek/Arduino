@@ -51,6 +51,13 @@ void SpaceShip::draw_hov(Adafruit_ST7735 tft) {
 void SpaceShip::erase_hov(Adafruit_ST7735 tft) {
   tft.drawFastVLine(0, 0, tft.height(), BLACK);
   tft.drawFastHLine(0, 0, tft.width(), BLACK);
+
+  if (_former_orbiting_planet != NULL) {
+    tft.setTextSize(1);
+    tft.setTextColor(BLACK);
+    tft.setCursor(64-strlen(_former_orbiting_planet->_name)*3, 40);
+    tft.println(_former_orbiting_planet->_name);
+  }
 }
 
 void SpaceShip::draw_hov_in_color(Adafruit_ST7735 tft, int thrust_color, int angular_thrust_color) {
@@ -68,8 +75,27 @@ void SpaceShip::draw_hov_in_color(Adafruit_ST7735 tft, int thrust_color, int ang
   } else {
     tft.drawFastHLine(tft.width()/2, 0, angular_thrust_w, angular_thrust_color);
   }
+
+  if (_orbiting_planet != NULL) {
+    tft.setTextSize(1);
+    tft.setTextColor(GRAY);
+    tft.setCursor(64-strlen(_orbiting_planet->_name)*3, 40);
+    tft.println(_orbiting_planet->_name);
+  }
 }
 
+void SpaceShip::step(SpaceThing* things[], uint thing_count) {
+  SpaceThing::step(things, thing_count);
+  bool orbiting_something = false;
+  for (uint i = 0; i < thing_count; i++) {
+    if (things[i]->can_orbit() && overlaps(*things[i])) {
+      _orbiting_planet = (Planet*)things[i];
+      orbiting_something = true;
+    }
+  }
+  _former_orbiting_planet = _orbiting_planet;
+  if (!orbiting_something) _orbiting_planet = NULL;
+}
 /*
 void calculate_heat_near(SpaceThing sun) {
   distance_to_sun = distance_to(spaceship_x, spaceship_y, WIDTH, HEIGHT);

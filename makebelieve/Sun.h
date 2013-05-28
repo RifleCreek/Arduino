@@ -8,8 +8,8 @@ class Sun : public Planet {
 public:
   int _band_count, _band_length;
 
-  Sun(float cx, float cy, int radius, int color)
-  : Planet(cx, cy, radius, color) {
+  Sun(float cx, float cy, int radius, int color, char* name)
+  : Planet(cx, cy, radius, color, name) {
     _band_count = 13;
     _band_length = 10;    
     _w = (_radius + 4 + _band_length) * 2;

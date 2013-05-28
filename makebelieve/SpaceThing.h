@@ -21,13 +21,15 @@ public:
 
   int _screen_cx, _screen_cy;
 
-  bool needs_erase;
+  bool _needs_erase;
 
   SpaceThing(void);
   SpaceThing(int x, int y, int w, int h);
   SpaceThing(float cx, float cy, int w, int h);
 
-  virtual void step(void);
+  virtual bool can_orbit(void) { return false; }
+
+  virtual void step(SpaceThing* things[], uint thing_count);
   virtual void draw(Adafruit_ST7735 tft, Viewport view) {};
   virtual void erase(Adafruit_ST7735 tft, Viewport view) {};
   virtual void draw_hov(Adafruit_ST7735 tft) {};

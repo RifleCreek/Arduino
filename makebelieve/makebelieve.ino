@@ -45,10 +45,10 @@ Starfield sf20(-ST7735_TFTWIDTH, ST7735_TFTHEIGHT);
 Starfield sf21(               0, ST7735_TFTHEIGHT);
 Starfield sf22(ST7735_TFTWIDTH,  ST7735_TFTHEIGHT);
 
-Planet mars(-40, 60, 5, RED);
-Planet earth(40, -55, 5, BLUE);
-Planet venus(-45, -50, 4, GREEN);
-Sun sun(50, 60, 19, YELLOW);
+Planet mars(-40, 60, 5, RED, "Mars");
+Planet earth(40, -55, 5, BLUE, "Earth");
+Planet venus(-45, -50, 4, GREEN, "Venus");
+Sun sun(50, 60, 19, YELLOW, "Sun");
 
 // Player's Spaceship
 SpaceShip spaceship;
@@ -79,6 +79,7 @@ Viewport view(
 #define MODE_TITLE     0
 #define MODE_CALIBRATE 1
 #define MODE_SPACE     2
+#define MODE_LANDER    3
 #define MODE_BUTTON_UP 999
 int main_mode = MODE_TITLE;
 int next_mode = MODE_TITLE;
@@ -167,13 +168,13 @@ void mode_calibrate() {
 void mode_space() {
   // EVENT LOOP
   for (uint i = 0; i < space_thing_count; i++) {
-    if(things[i]->needs_erase) {
+    if(things[i]->_needs_erase) {
       things[i]->erase(tft, view);
     }
-    things[i]->step();
+    things[i]->step(things, space_thing_count);
     if (view.overlaps(*things[i])) {
       things[i]->draw(tft, view);
-      things[i]->needs_erase = true;
+      things[i]->_needs_erase = true;
     }
   }
 
@@ -200,6 +201,10 @@ void mode_space() {
   // WAIT
   delay(30);
 
+  if (button_right.is_pressed() && spaceship._orbiting_planet != NULL) {
+    set_main_mode(MODE_LANDER);
+  }
+
   if (button_start.is_pressed()) {
     if (space_explorer_mode) {
       space_explorer_mode = false;
@@ -211,7 +216,19 @@ void mode_space() {
   }
 }
 
-// MODE_BUTTON_UP (3)
+// MODE_LANDER (3)
+void mode_lander() {
+  tft.setTextSize(1);
+  tft.setTextColor(GRAY);
+  tft.setCursor(64-strlen(spaceship._orbiting_planet->_name)*3, 40);
+  tft.println(spaceship._orbiting_planet->_name);
+
+  if (button_start.is_pressed()) {
+    set_main_mode(MODE_SPACE);
+  }
+}
+
+// MODE_BUTTON_UP (999)
 void mode_button_up() {
   if (!button_start.is_pressed()) {
     main_mode = next_mode;
@@ -235,6 +252,7 @@ void loop() {
     case MODE_TITLE:     mode_title();     break;
     case MODE_CALIBRATE: mode_calibrate(); break;
     case MODE_SPACE:     mode_space();     break;
+    case MODE_LANDER:    mode_lander();    break;
     case MODE_BUTTON_UP: mode_button_up(); break;
   }
 }

@@ -15,7 +15,7 @@ SpaceThing::SpaceThing(float cx, float cy, int w, int h) : _cx(cx), _cy(cy) {
   SpaceThing::init();
 }
 
-void SpaceThing::step(void) {
+void SpaceThing::step(SpaceThing* things[], uint thing_count) {
   // Make it easier to "stop"
   if (_thrust < 0.25) _thrust = 0.0;
   // Make it easier to "go straight"
