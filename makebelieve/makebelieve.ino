@@ -242,26 +242,25 @@ void mode_space() {
   }
 }
 
-int planet_surface = 0;
+int planetscape_planet_surface = 0;
 void mode_planetscape_init_for_descent() {
   sf_planetscape.set_mask(
     spaceship._orbiting_planet->big_planet_center_x(tft),
     spaceship._orbiting_planet->big_planet_center_y(tft),
     spaceship._orbiting_planet->_radius * 10);
-  planet_surface = spaceship._orbiting_planet->big_planet_center_y(tft) -
+  planetscape_planet_surface = spaceship._orbiting_planet->big_planet_center_y(tft) -
     (spaceship._orbiting_planet->_radius * 10) - 5 -
     tft.height()/2;
   spaceship.save_state();
   spaceship._cx = 0;
   spaceship._cy = -20;
-  spaceship._direction = PI/2;
   planetscape_view.center_x_on(spaceship);  
 }
 
 void mode_planetscape_init_for_ascent() {
   spaceship.restore_size();
   spaceship._cx = 0;
-  spaceship._cy = planet_surface - 5 - tft.height()/2;
+  spaceship._cy = planetscape_planet_surface - 5;
 }
 
 // MODE_PLANETSCAPE (3)
@@ -292,23 +291,23 @@ void mode_planetscape() {
     set_main_mode(MODE_SPACE);
   }
 
-  if (spaceship._cy >= planet_surface) {
+  if (spaceship._cy >= planetscape_planet_surface) {
     mode_lander_init_for_descent();
     set_main_mode(MODE_LANDER);
   }
 }
 
+float lander_gravity = 0;
+int lander_planet_surface;
 void mode_lander_init_for_descent() {
-  planet_surface = tft.height() - 15;
+  lander_planet_surface = tft.height() - 15;
   spaceship._cx = 0;
   spaceship._cy = -40;
-  spaceship._direction = -PI/2;
 
   spaceship.save_size();
   spaceship._size = 6;
 }
 
-float lander_gravity = 0;
 void mode_lander(void) {
   lander_gravity = (spaceship._orbiting_planet->_radius / 10.0);
   spaceship.erase(tft, zero_view);
