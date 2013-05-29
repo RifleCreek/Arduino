@@ -245,10 +245,10 @@ void mode_space() {
 int planetscape_planet_surface = 0;
 void mode_planetscape_init_for_descent() {
   sf_planetscape.set_mask(
-    spaceship._orbiting_planet->big_planet_center_x(tft),
-    spaceship._orbiting_planet->big_planet_center_y(tft),
-    spaceship._orbiting_planet->_radius * 10);
-  planetscape_planet_surface = spaceship._orbiting_planet->big_planet_center_y(tft) -
+    spaceship._orbiting_planet->planetscape_center_x(tft),
+    spaceship._orbiting_planet->planetscape_center_y(tft),
+    spaceship._orbiting_planet->_radius * 10 + 3);
+  planetscape_planet_surface = spaceship._orbiting_planet->planetscape_center_y(tft) -
     (spaceship._orbiting_planet->_radius * 10) - 5 -
     tft.height()/2;
   spaceship.save_state();
@@ -276,9 +276,9 @@ void mode_planetscape() {
   sf_planetscape.draw(tft, zero_view);
   spaceship.draw(tft, planetscape_view);
 
-  spaceship._orbiting_planet->draw_big_planet(tft, planet_angle, BLACK);
+  spaceship._orbiting_planet->draw_planetscape(tft, planet_angle, BLACK);
   planet_angle = -spaceship._cx / TWO_PI / 10;
-  spaceship._orbiting_planet->draw_big_planet(tft, planet_angle, spaceship._orbiting_planet->_color);
+  spaceship._orbiting_planet->draw_planetscape(tft, planet_angle, spaceship._orbiting_planet->_color);
 
   // CONTROL
   player_control(spaceship, paddle_left, paddle_right);
@@ -299,6 +299,7 @@ void mode_planetscape() {
 
 float lander_gravity = 0;
 int lander_planet_surface;
+bool mode_lander_init_bg = true;
 void mode_lander_init_for_descent() {
   lander_planet_surface = tft.height() - 15;
   spaceship._cx = 0;
@@ -306,19 +307,34 @@ void mode_lander_init_for_descent() {
 
   spaceship.save_size();
   spaceship._size = 6;
+
+  mode_lander_init_bg = true;
+  lander_gravity = (spaceship._orbiting_planet->_radius / 10.0);
 }
 
 void mode_lander(void) {
-  lander_gravity = (spaceship._orbiting_planet->_radius / 10.0);
-  spaceship.erase(tft, zero_view);
+  if (mode_lander_init_bg) {
+    spaceship._orbiting_planet->draw_lander_surface(tft, 80);
+  }
+  if (mode_lander_init_bg) {
+    mode_lander_init_bg = false;
+  } else {
+    spaceship.erase(tft, zero_view);
+  }
   spaceship.step();
   spaceship._cy += lander_gravity;
   spaceship.draw(tft, zero_view);
 
-  tft.drawFastHLine(0, tft.height()-5, tft.width(), spaceship._orbiting_planet->_color);
-  tft.drawFastHLine(0, tft.height()-4, tft.width(), spaceship._orbiting_planet->_color);
-  tft.drawFastHLine(0, tft.height()-3, tft.width(), spaceship._orbiting_planet->_color);
-  tft.drawFastHLine(0, tft.height()-2, tft.width(), spaceship._orbiting_planet->_color);
+  if (spaceship._orbiting_planet->point_is_below_surface(
+  spaceship._cx + tft.width()/2,
+  spaceship._cy + tft.height()/2 + spaceship._size,
+  tft.width(), 80)) {
+    tft.setTextSize(1);
+    tft.setTextColor(GRAY);
+    tft.setCursor(64-strlen("crash")*3, 40);
+    tft.println("crash");
+    // set_main_mode(MODE_TITLE);
+  }
 
   // CONTROL
   player_control(spaceship, paddle_left, paddle_right);

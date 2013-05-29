@@ -4,6 +4,8 @@
 #include <string.h>
 #include "Colors.h"
 
+#define BUMP_HEIGHT_MAX 100
+
 class Planet : public SpaceThing {
 public:
   int _radius, _color;
@@ -38,22 +40,22 @@ public:
 
   virtual void step(SpaceThing* things, int thing_count) {}
 
-  int big_planet_center_x(Adafruit_ST7735 tft) {
+  int planetscape_center_x(Adafruit_ST7735 tft) {
     return tft.width()/2;
   };
   
-  int big_planet_center_y(Adafruit_ST7735 tft) {
+  int planetscape_center_y(Adafruit_ST7735 tft) {
     return tft.height() + _radius*10/2;
   }
 
-  void draw_big_planet(Adafruit_ST7735 tft, float angle, int color) {
+  void draw_planetscape(Adafruit_ST7735 tft, float angle, int color) {
     randomSeed(seed());
     int bumps = (int)(TWO_PI*_radius);
     int last_x = 0, last_y = 0;
-    int center_x = big_planet_center_x(tft);
-    int center_y = big_planet_center_y(tft);
+    int center_x = planetscape_center_x(tft);
+    int center_y = planetscape_center_y(tft);
     for (int i = 0; i <= bumps; i++) {
-      int bump_height = random(60);
+      int bump_height = random(BUMP_HEIGHT_MAX);
       float theta = i*(TWO_PI/bumps);
       int d = ((_radius * 10) + (bump_height - 30)/10);
       int x = cos(angle + theta) * d + center_x;
@@ -65,13 +67,78 @@ public:
     }
   }
 
+  // JS test box: http://jsbin.com/ixiqiy/15/edit
+  void draw_sinusoidal(Adafruit_ST7735 tft, int sx, int sy, int dir) {
+    float p1 = (float)random(100) / 100 / 3.5 + 0.05;
+    float p2 = (float)random(100) / 100 / 12 + 0.5;
+    float p3 = (float)random(100) / 100 / 4 + 0.5;
+
+    float th1 = p1, th2 = p2, th3 = p3;
+    for (int i = sx; i > 0 && i < tft.width(); i += dir) {
+      int h = sy+(int)(sin(th1)*4 + sin(th2) + sin(th3));
+      th1 += p1; th2 += p2; th3 += p3;
+      tft.drawFastVLine(i, h, tft.height()-h, _color);
+    }
+  }
+
+  bool point_is_below_sinusoidal(int x, int y, int sx, int sy, int max_width, int dir) {
+    float p1 = (float)random(100) / 100 / 3.5 + 0.05;
+    float p2 = (float)random(100) / 100 / 12 + 0.5;
+    float p3 = (float)random(100) / 100 / 4 + 0.5;
+
+    float th1 = p1, th2 = p2, th3 = p3;
+    for (int i = sx; i > 0 && i < max_width; i += dir) {
+      int h = sy+(int)(sin(th1)*4 + sin(th2) + sin(th3));
+      th1 += p1; th2 += p2; th3 += p3;
+      if (x == i && y > h) return true;
+    }
+    return false;
+  }
+
+  bool point_is_below_surface(int x, int y, int max_width, int surface_height) {
+    randomSeed(seed());
+
+    int pad_w = random(15) + 10;
+    int pad_x = random(max_width - pad_w) + pad_w/2;
+    int pad_y = surface_height;
+
+    // Check landing pad
+    if (x >= pad_x && x <= pad_x + pad_w && y > pad_y) return true;
+
+    // Check sinusoidal left
+    randomSeed(seed());
+    if (point_is_below_sinusoidal(x, y, pad_x, pad_y, max_width, -1)) return true;
+    // Check sinusoidal right
+    randomSeed(seed()+1);
+    if (point_is_below_sinusoidal(x, y, pad_x + pad_w, pad_y, max_width, 1)) return true;
+
+    return false;
+  }
+
+  void draw_lander_surface(Adafruit_ST7735 tft, int surface_height) {
+    randomSeed(seed());
+
+    int pad_w = random(15) + 10;
+    int pad_x = random(tft.width() - pad_w) + pad_w/2;
+    int pad_y = surface_height;
+
+    tft.fillRect(pad_x, pad_y, pad_w, tft.height() - pad_y, _color);
+    tft.drawFastHLine(pad_x, pad_y, pad_w, WHITE);
+    // Draw sinusoidal left
+    randomSeed(seed());
+    draw_sinusoidal(tft, pad_x, pad_y, -1);
+    // Draw sinusoidal right
+    randomSeed(seed()+1);
+    draw_sinusoidal(tft, pad_x + pad_w, pad_y, 1);
+  }
+
   // Recreate the conditions of the random number generator for the big planet,
   // but instead of drawing it, grab the bump height and return.
-  float big_planet_bump_height(float angle) {
+  int planetscape_bump_height(float angle) {
     randomSeed(seed());
     int bumps = (int)(TWO_PI*_radius);
     for (int i = 0; i <= bumps; i++) {
-      float bump_height = ((float)random(60) - 30)/10;
+      int bump_height = random(BUMP_HEIGHT_MAX);
       return bump_height;
     }
   }
