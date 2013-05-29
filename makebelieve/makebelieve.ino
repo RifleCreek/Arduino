@@ -57,6 +57,9 @@ Planet uranus(10, 200, 7, DARK_CYAN, (char*)"Uranus");
 Planet neptune(235, 120, 9, GRAY, (char*)"Neptune");
 Sun sun(50, 60, 19, YELLOW, (char*)"Sun");
 
+// Reference to "current planet" if in planetscape or lander modes
+Planet* planet;
+
 // Player's Spaceship
 SpaceShip spaceship;
 
@@ -100,6 +103,7 @@ Viewport zero_view(
 #define MODE_SPACE       2
 #define MODE_PLANETSCAPE 3
 #define MODE_LANDER      4
+#define MODE_SURFACE     5
 #define MODE_BUTTON_UP 999
 int main_mode = MODE_TITLE;
 int next_mode = MODE_TITLE;
@@ -244,12 +248,13 @@ void mode_space() {
 
 int planetscape_planet_surface = 0;
 void mode_planetscape_init_for_descent() {
+  planet = spaceship._orbiting_planet;
   sf_planetscape.set_mask(
-    spaceship._orbiting_planet->planetscape_center_x(tft),
-    spaceship._orbiting_planet->planetscape_center_y(tft),
-    spaceship._orbiting_planet->_radius * 10 + 3);
-  planetscape_planet_surface = spaceship._orbiting_planet->planetscape_center_y(tft) -
-    (spaceship._orbiting_planet->_radius * 10) - 5 -
+    planet->planetscape_center_x(tft),
+    planet->planetscape_center_y(tft),
+    planet->_radius * 10 + 3);
+  planetscape_planet_surface = planet->planetscape_center_y(tft) -
+    (planet->_radius * 10) - 5 -
     tft.height()/2;
   spaceship.save_state();
   spaceship._cx = 0;
@@ -258,6 +263,7 @@ void mode_planetscape_init_for_descent() {
 }
 
 void mode_planetscape_init_for_ascent() {
+  if (planet == NULL) set_main_mode(MODE_TITLE);
   spaceship.restore_size();
   spaceship._cx = 0;
   spaceship._cy = planetscape_planet_surface - 5;
@@ -268,17 +274,17 @@ float planet_angle = 0.0;
 void mode_planetscape() {
   tft.setTextSize(1);
   tft.setTextColor(GRAY);
-  tft.setCursor(64-strlen(spaceship._orbiting_planet->_name)*3, 40);
-  tft.println(spaceship._orbiting_planet->_name);
+  tft.setCursor(64-strlen(planet->_name)*3, 40);
+  tft.println(planet->_name);
 
   spaceship.erase(tft, planetscape_view);
   spaceship.step();
   sf_planetscape.draw(tft, zero_view);
   spaceship.draw(tft, planetscape_view);
 
-  spaceship._orbiting_planet->draw_planetscape(tft, planet_angle, BLACK);
+  planet->draw_planetscape(tft, planet_angle, BLACK);
   planet_angle = -spaceship._cx / TWO_PI / 10;
-  spaceship._orbiting_planet->draw_planetscape(tft, planet_angle, spaceship._orbiting_planet->_color);
+  planet->draw_planetscape(tft, planet_angle, planet->_color);
 
   // CONTROL
   player_control(spaceship, paddle_left, paddle_right);
@@ -301,6 +307,8 @@ float lander_gravity = 0;
 int lander_planet_surface;
 bool mode_lander_init_bg = true;
 void mode_lander_init_for_descent() {
+  if (planet == NULL) set_main_mode(MODE_TITLE);
+
   lander_planet_surface = tft.height() - 15;
   spaceship._cx = 0;
   spaceship._cy = -40;
@@ -309,12 +317,12 @@ void mode_lander_init_for_descent() {
   spaceship._size = 6;
 
   mode_lander_init_bg = true;
-  lander_gravity = (spaceship._orbiting_planet->_radius / 10.0);
+  lander_gravity = (planet->_radius / 10.0);
 }
 
 void mode_lander(void) {
   if (mode_lander_init_bg) {
-    spaceship._orbiting_planet->draw_lander_surface(tft, 80);
+    planet->draw_lander_surface(tft, 80);
   }
   if (mode_lander_init_bg) {
     mode_lander_init_bg = false;
@@ -325,15 +333,26 @@ void mode_lander(void) {
   spaceship._cy += lander_gravity;
   spaceship.draw(tft, zero_view);
 
-  if (spaceship._orbiting_planet->point_is_below_surface(
+  switch(planet->get_surface_position(
   spaceship._cx + tft.width()/2,
   spaceship._cy + tft.height()/2 + spaceship._size,
   tft.width(), 80)) {
-    tft.setTextSize(1);
-    tft.setTextColor(GRAY);
-    tft.setCursor(64-strlen("crash")*3, 40);
-    tft.println("crash");
-    // set_main_mode(MODE_TITLE);
+    case surface_above: break;
+    case surface_pad:
+      tft.setTextSize(1);
+      tft.setTextColor(GRAY);
+      tft.setCursor(64-strlen("Landed!")*3, 40);
+      tft.println("Landed!");
+      delay(800);
+      set_main_mode(MODE_SURFACE);
+      break;
+    case surface_below:
+      tft.setTextSize(1);
+      tft.setTextColor(GRAY);
+      tft.setCursor(64-strlen("*crash*")*3, 40);
+      tft.println("*crash*");
+      delay(800);
+      set_main_mode(MODE_TITLE);
   }
 
   // CONTROL
@@ -345,6 +364,14 @@ void mode_lander(void) {
     mode_planetscape_init_for_ascent();
     set_main_mode(MODE_PLANETSCAPE);
   }
+}
+
+void mode_surface() {
+  tft.setTextSize(1);
+  tft.setTextColor(GRAY);
+  tft.setCursor(64-strlen("SURFACE")*3, 40);
+  tft.println("SURFACE");
+  delay(30);
 }
 
 // MODE_BUTTON_UP (999)
@@ -369,6 +396,7 @@ void loop() {
     case MODE_SPACE:       mode_space();       break;
     case MODE_PLANETSCAPE: mode_planetscape(); break;
     case MODE_LANDER:      mode_lander();      break;
+    case MODE_SURFACE:     mode_surface();     break;
     case MODE_BUTTON_UP:   mode_button_up();   break;
   }
   if (button_start.is_pressed() &&

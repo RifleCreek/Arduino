@@ -3,6 +3,7 @@
 #include "Geometry.h"
 
 void SpaceShip::reset() {
+  _size = 4;
   _cx = 0;
   _cy = 0;
   _x = -_w/2;

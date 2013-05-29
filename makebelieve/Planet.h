@@ -5,6 +5,13 @@
 #include "Colors.h"
 
 #define BUMP_HEIGHT_MAX 100
+#define PAD_MIN_WIDTH 20
+
+enum surface_position {
+  surface_pad,
+  surface_below,
+  surface_above
+};
 
 class Planet : public SpaceThing {
 public:
@@ -75,50 +82,50 @@ public:
 
     float th1 = p1, th2 = p2, th3 = p3;
     for (int i = sx; i > 0 && i < tft.width(); i += dir) {
-      int h = sy+(int)(sin(th1)*4 + sin(th2) + sin(th3));
+      int h = sy+(int)(sin(th1)*10 + sin(th2) + sin(th3));
       th1 += p1; th2 += p2; th3 += p3;
       tft.drawFastVLine(i, h, tft.height()-h, _color);
     }
   }
 
-  bool point_is_below_sinusoidal(int x, int y, int sx, int sy, int max_width, int dir) {
+  bool is_below_sinusoidal(int x, int y, int sx, int sy, int max_width, int dir) {
     float p1 = (float)random(100) / 100 / 3.5 + 0.05;
     float p2 = (float)random(100) / 100 / 12 + 0.5;
     float p3 = (float)random(100) / 100 / 4 + 0.5;
 
     float th1 = p1, th2 = p2, th3 = p3;
     for (int i = sx; i > 0 && i < max_width; i += dir) {
-      int h = sy+(int)(sin(th1)*4 + sin(th2) + sin(th3));
+      int h = sy+(int)(sin(th1)*10 + sin(th2) + sin(th3));
       th1 += p1; th2 += p2; th3 += p3;
       if (x == i && y > h) return true;
     }
     return false;
   }
 
-  bool point_is_below_surface(int x, int y, int max_width, int surface_height) {
+  surface_position get_surface_position(int x, int y, int max_width, int surface_height) {
     randomSeed(seed());
 
-    int pad_w = random(15) + 10;
+    int pad_w = random(15) + PAD_MIN_WIDTH;
     int pad_x = random(max_width - pad_w) + pad_w/2;
     int pad_y = surface_height;
 
     // Check landing pad
-    if (x >= pad_x && x <= pad_x + pad_w && y > pad_y) return true;
+    if (x >= pad_x && x <= pad_x + pad_w && y > pad_y) return surface_pad;
 
     // Check sinusoidal left
     randomSeed(seed());
-    if (point_is_below_sinusoidal(x, y, pad_x, pad_y, max_width, -1)) return true;
+    if (is_below_sinusoidal(x, y, pad_x, pad_y, max_width, -1)) return surface_below;
     // Check sinusoidal right
     randomSeed(seed()+1);
-    if (point_is_below_sinusoidal(x, y, pad_x + pad_w, pad_y, max_width, 1)) return true;
+    if (is_below_sinusoidal(x, y, pad_x + pad_w, pad_y, max_width, 1)) return surface_below;
 
-    return false;
+    return surface_above;
   }
 
   void draw_lander_surface(Adafruit_ST7735 tft, int surface_height) {
     randomSeed(seed());
 
-    int pad_w = random(15) + 10;
+    int pad_w = random(15) + PAD_MIN_WIDTH;
     int pad_x = random(tft.width() - pad_w) + pad_w/2;
     int pad_y = surface_height;
 
