@@ -8,6 +8,7 @@ void SpaceShip::reset() {
   _cy = 0;
   _x = -_w/2;
   _y = -_h/2;
+  _direction = -PI/2;
 }
 
 void SpaceShip::save_state() {
@@ -73,7 +74,7 @@ void SpaceShip::erase_hov(Adafruit_ST7735 tft) {
   tft.drawFastVLine(0, 0, tft.height(), BLACK);
   tft.drawFastHLine(0, 0, tft.width(), BLACK);
 
-  if (_former_orbiting_planet != NULL) {
+  if (_former_orbiting_planet != NULL && _orbiting_planet == NULL) {
     tft.setTextSize(1);
     tft.setTextColor(BLACK);
     tft.setCursor(64-strlen(_former_orbiting_planet->_name)*3, 40);

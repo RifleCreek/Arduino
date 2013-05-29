@@ -104,15 +104,37 @@ Viewport zero_view(
 #define MODE_PLANETSCAPE 3
 #define MODE_LANDER      4
 #define MODE_SURFACE     5
-#define MODE_BUTTON_UP 999
+#define MODE_STORY       100
+#define MODE_WAIT_BUTTON 998
+#define MODE_BUTTON_UP   999
 int main_mode = MODE_TITLE;
 int next_mode = MODE_TITLE;
 bool space_explorer_mode = false;
+bool button_up_clear_screen = true;
+bool never_landed_on_planet_before = true;
+
+#define STORY_INTRO  0
+#define STORY_INTRO2 1
+#define STORY_INTRO3 2
+int story_sequence = 0;
+
+void print(char* text, int color=WHITE) {
+  tft.setCursor(0, 0);
+  tft.setTextSize(1);
+  tft.setTextColor(color);
+  tft.setTextWrap(true);
+  tft.print(text);
+}
 
 void set_main_mode(int mode) {
-  tft.fillScreen(BLACK);
+  button_up_clear_screen = true;
   main_mode = MODE_BUTTON_UP;
   next_mode = mode;
+  if (next_mode == MODE_TITLE) {
+    space_explorer_mode = false;
+    story_sequence = STORY_INTRO;
+    never_landed_on_planet_before = true;
+  }
 }
 
 void player_control(SpaceShip& spaceship,
@@ -158,7 +180,7 @@ void mode_title() {
   title_flash++;
   
   if (button_start.is_pressed()) {
-    set_main_mode(MODE_CALIBRATE);
+    set_main_mode(MODE_STORY);
   }
 }
 // MODE_CALIBRATE (1)
@@ -220,6 +242,22 @@ void mode_space() {
     things[i]->erase_hov(tft);
     things[i]->draw_hov(tft);
   }
+  if (never_landed_on_planet_before) {
+  if (spaceship._former_orbiting_planet != NULL && spaceship._orbiting_planet == NULL) {
+    tft.setTextColor(BLACK);
+    tft.setCursor(64-strlen("(press R")*3, 48);
+    tft.println((char*)"(press R");
+    tft.setCursor(64-strlen("to land)")*3, 56);
+    tft.println((char*)"to land)");
+  }
+  if (spaceship._orbiting_planet != NULL) {
+    tft.setTextColor(GRAY);
+    tft.setCursor(64-strlen("(press R")*3, 48);
+    tft.println((char*)"(press R");
+    tft.setCursor(64-strlen("to land)")*3, 56);
+    tft.println((char*)"to land)");
+  }
+  }
 
   // CONTROL
   player_control(spaceship, paddle_left, paddle_right);
@@ -248,6 +286,7 @@ void mode_space() {
 
 int planetscape_planet_surface = 0;
 void mode_planetscape_init_for_descent() {
+  never_landed_on_planet_before = false;
   planet = spaceship._orbiting_planet;
   sf_planetscape.set_mask(
     planet->planetscape_center_x(tft),
@@ -374,14 +413,71 @@ void mode_surface() {
   delay(30);
 }
 
+void mode_story() {
+  switch(story_sequence) {
+    case STORY_INTRO:
+      print((char*)"\n\n"
+                   "When Rachel awoke,\n"
+                   "her parents did not\n"
+                   "wake with her. They\n"
+                   "were in cryosleep,\n"
+                   "but nothing could\n"
+                   "rouse them.\n\n");
+      story_sequence++;
+      break;
+    case STORY_INTRO2:
+      print((char*)"\n\n"
+                   "She was the daughter\n"
+                   "of two renowned\n"
+                   "Xenoarchivists who\n"
+                   "had for the past\n"
+                   "decade tried to\n"
+                   "unlock the mysteries\n"
+                   "of an ancient\n"
+                   "planetary archive.");
+      story_sequence++;
+      break;
+    case STORY_INTRO3:
+      print((char*)"\n\n"
+                   "Now she was alone--\n"
+                   "in a sector of the\n"
+                   "galaxy frequented by\n"
+                   "no one.\n\n\n"
+                   "    What could a\n"
+                   "  12 year old girl\n"
+                   "    possibly do?");
+      next_mode = MODE_CALIBRATE;
+      story_sequence++;
+      break;
+
+  }
+  main_mode = MODE_WAIT_BUTTON;
+  delay(30);
+}
+
+// MODE_WAIT_BUTTON (998)
+void mode_wait_button() {
+  if (button_start.is_pressed() ||
+      button_right.is_pressed() ||
+      button_left.is_pressed()) {
+    button_up_clear_screen = true;
+    main_mode = MODE_BUTTON_UP;
+  }
+  delay(30);
+}
+
 // MODE_BUTTON_UP (999)
 void mode_button_up() {
   if (!button_start.is_pressed() && 
       !button_right.is_pressed() &&
       !button_left.is_pressed()) {
     main_mode = next_mode;
+    if (button_up_clear_screen) {
+      tft.fillScreen(BLACK);
+    }
   }
 }
+
 
 void setup() {
   tft.initR();
@@ -397,11 +493,15 @@ void loop() {
     case MODE_PLANETSCAPE: mode_planetscape(); break;
     case MODE_LANDER:      mode_lander();      break;
     case MODE_SURFACE:     mode_surface();     break;
+    case MODE_STORY:       mode_story();       break;
+    case MODE_WAIT_BUTTON: mode_wait_button(); break;
     case MODE_BUTTON_UP:   mode_button_up();   break;
   }
-  if (button_start.is_pressed() &&
-      main_mode != MODE_TITLE && 
-      main_mode != MODE_BUTTON_UP) {
-    set_main_mode(MODE_TITLE);
-  }
+  // if (button_start.is_pressed() &&
+  //     main_mode != MODE_TITLE && 
+  //     main_mode != MODE_WAIT_BUTTON &&
+  //     main_mode != MODE_BUTTON_UP &&
+  //     main_mode != MODE_STORY) {
+  //   set_main_mode(MODE_TITLE);
+  // }
 }
