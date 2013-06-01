@@ -58,19 +58,25 @@ public:
   void draw_planetscape(Adafruit_ST7735 tft, float angle, int color) {
     randomSeed(seed());
     int bumps = (int)(TWO_PI*_radius);
-    int last_x = 0, last_y = 0;
+    int prev_x = 0, prev_y = 0;
     int center_x = planetscape_center_x(tft);
     int center_y = planetscape_center_y(tft);
+    int first_x = 0, first_y = 0;
     for (int i = 0; i <= bumps; i++) {
       int bump_height = random(BUMP_HEIGHT_MAX);
       float theta = i*(TWO_PI/bumps);
       int d = ((_radius * 10) + (bump_height - 30)/10);
       int x = cos(angle + theta) * d + center_x;
       int y = sin(angle + theta) * d + center_y;
-      if (last_x != 0 || last_y != 0) {
-        tft.drawLine(last_x, last_y, x, y, color);
+      if (i == 0) {
+        first_x = x; first_y = y;
+      } else if (i == bumps) {
+        x = first_x; y = first_y;
       }
-      last_x = x; last_y = y;
+      if (prev_x != 0 || prev_y != 0) {
+        tft.drawLine(prev_x, prev_y, x, y, color);
+      }
+      prev_x = x; prev_y = y;
     }
   }
 

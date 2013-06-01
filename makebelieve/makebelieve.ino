@@ -36,26 +36,43 @@ ButtonControl button_left  = ButtonControl(PIN_BUTTON_L);
 ButtonControl button_right = ButtonControl(PIN_BUTTON_R);
 ButtonControl button_start = ButtonControl(PIN_BUTTON_START);
 
-Starfield sf00(-ST7735_TFTWIDTH, -ST7735_TFTHEIGHT);
-Starfield sf01(               0, -ST7735_TFTHEIGHT);
-Starfield sf02(ST7735_TFTWIDTH,  -ST7735_TFTHEIGHT);
-Starfield sf10(-ST7735_TFTWIDTH, 0);
-Starfield sf11(               0, 0);
-Starfield sf12(ST7735_TFTWIDTH,  0);
-Starfield sf20(-ST7735_TFTWIDTH, ST7735_TFTHEIGHT);
-Starfield sf21(               0, ST7735_TFTHEIGHT);
-Starfield sf22(ST7735_TFTWIDTH,  ST7735_TFTHEIGHT);
+Starfield sf00(-ST7735_TFTWIDTH, -ST7735_TFTHEIGHT, 13);
+Starfield sf01(               0, -ST7735_TFTHEIGHT, 21);
+Starfield sf02(ST7735_TFTWIDTH,  -ST7735_TFTHEIGHT, 13);
+Starfield sf10(-ST7735_TFTWIDTH, 0, 21);
+Starfield sf11(               0, 0, 21);
+Starfield sf12(ST7735_TFTWIDTH,  0, 21);
+Starfield sf20(-ST7735_TFTWIDTH, ST7735_TFTHEIGHT, 13);
+Starfield sf21(               0, ST7735_TFTHEIGHT, 21);
+Starfield sf22(ST7735_TFTWIDTH,  ST7735_TFTHEIGHT, 13);
+
+Starfield sf31(ST7735_TFTWIDTH*2, 0, 13);
+Starfield sf41(ST7735_TFTWIDTH*3, 0, 13);
+Starfield sf51(ST7735_TFTWIDTH*4, 0, 13);
+
+Starfield sf60(ST7735_TFTWIDTH*5, ST7735_TFTHEIGHT*(-1), 13);
+Starfield sf61(ST7735_TFTWIDTH*5, ST7735_TFTHEIGHT*0, 21);
+Starfield sf62(ST7735_TFTWIDTH*5, ST7735_TFTHEIGHT*1, 13);
+Starfield sf70(ST7735_TFTWIDTH*6, ST7735_TFTHEIGHT*(-1), 21);
+Starfield sf71(ST7735_TFTWIDTH*6, ST7735_TFTHEIGHT*0, 21);
+Starfield sf72(ST7735_TFTWIDTH*6, ST7735_TFTHEIGHT*1, 21);
+Starfield sf80(ST7735_TFTWIDTH*7, ST7735_TFTHEIGHT*(-1), 13);
+Starfield sf81(ST7735_TFTWIDTH*7, ST7735_TFTHEIGHT*0, 21);
+Starfield sf82(ST7735_TFTWIDTH*7, ST7735_TFTHEIGHT*1, 13);
 
 StarfieldMasked sf_planetscape(0, 0, 80);
 
-Planet mars(-45, -50, 5, RED, (char*)"Mars");
-Planet earth(40, -55, 5, BLUE, (char*)"Earth");
-Planet venus(-40, 60, 4, GREEN, (char*)"Venus");
-Planet mercury(95, 90, 3, ORANGE, (char*)"Mercury");
-Planet jupiter(195, -100, 10, ORANGE, (char*)"Jupiter");
-Planet uranus(10, 200, 7, DARK_CYAN, (char*)"Uranus");
-Planet neptune(235, 120, 9, GRAY, (char*)"Neptune");
-Sun sun(50, 60, 19, YELLOW, (char*)"Sun");
+Planet mars(ST7735_TFTWIDTH*6-45, -50, 5, RED, (char*)"Mars");
+Planet earth(ST7735_TFTWIDTH*6+40, -55, 5, BLUE, (char*)"Earth");
+Planet venus(ST7735_TFTWIDTH*6-40, 60, 4, GREEN, (char*)"Venus");
+Planet mercury(ST7735_TFTWIDTH*6+95, 90, 3, ORANGE, (char*)"Mercury");
+Planet jupiter(ST7735_TFTWIDTH*6+195, -100, 10, ORANGE, (char*)"Jupiter");
+Planet uranus(ST7735_TFTWIDTH*6+10, 200, 7, DARK_CYAN, (char*)"Uranus");
+Planet neptune(ST7735_TFTWIDTH*6+235, 120, 9, GRAY, (char*)"Neptune");
+Sun sun(ST7735_TFTWIDTH*6+50, 60, 19, YELLOW, (char*)"Sol");
+
+Planet canon(-35, -20, 4, GRAY, (char*)"Canon");
+Sun canon_sun(50, 60, 15, ORANGE, (char*)"XN210C");
 
 // Reference to "current planet" if in planetscape or lander modes
 Planet* planet;
@@ -64,15 +81,18 @@ Planet* planet;
 SpaceShip spaceship;
 
 SpaceThing* things[] = {
-  &sf00,
-  &sf01,
-  &sf02,
-  &sf10,
-  &sf11,
-  &sf12,
-  &sf20,
-  &sf21,
-  &sf22,
+
+  &sf00, &sf01, &sf02,
+  &sf10, &sf11, &sf12,
+  &sf20, &sf21, &sf22,
+  &sf31,
+  &sf41,
+  &sf51,
+  &sf60, &sf61, &sf62,
+  &sf70, &sf71, &sf72,
+  &sf80, &sf81, &sf82,
+  &canon,
+  &canon_sun,
   &mars,
   &earth,
   &venus,
@@ -126,6 +146,13 @@ void print(char* text, int color=WHITE) {
   tft.print(text);
 }
 
+void centered_text(const char text[], int color=GRAY, int y=40) {
+  tft.setTextSize(1);
+  tft.setTextColor(color);
+  tft.setCursor(64-strlen(text)*3, y);
+  tft.println((char*)text);
+}
+
 void set_main_mode(int mode) {
   button_up_clear_screen = true;
   main_mode = MODE_BUTTON_UP;
@@ -134,6 +161,9 @@ void set_main_mode(int mode) {
     space_explorer_mode = false;
     story_sequence = STORY_INTRO;
     never_landed_on_planet_before = true;
+
+    view._x = -ST7735_TFTWIDTH/2;
+    view._y = -ST7735_TFTHEIGHT/2;
   }
 }
 
@@ -169,18 +199,20 @@ void mode_title() {
   tft.setCursor(mb_x+83, 40);
   tft.println("eve");
   
-  tft.setTextSize(1);
   if (title_flash % 30 < 15)
-    tft.setTextColor(GRAY);
+    centered_text("Press Start", GRAY, 100);
   else
-    tft.setTextColor(WHITE);
-  tft.setCursor(30, 100);
-  tft.println("Press Start");
+    centered_text("Press Start", WHITE, 100);
+
+  centered_text("(R skips story)", GRAY, 112);
   
   title_flash++;
   
   if (button_start.is_pressed()) {
     set_main_mode(MODE_STORY);
+  }
+  if (button_right.is_pressed()) {
+    set_main_mode(MODE_CALIBRATE);
   }
 }
 // MODE_CALIBRATE (1)
@@ -243,20 +275,14 @@ void mode_space() {
     things[i]->draw_hov(tft);
   }
   if (never_landed_on_planet_before) {
-  if (spaceship._former_orbiting_planet != NULL && spaceship._orbiting_planet == NULL) {
-    tft.setTextColor(BLACK);
-    tft.setCursor(64-strlen("(press R")*3, 48);
-    tft.println((char*)"(press R");
-    tft.setCursor(64-strlen("to land)")*3, 56);
-    tft.println((char*)"to land)");
-  }
-  if (spaceship._orbiting_planet != NULL) {
-    tft.setTextColor(GRAY);
-    tft.setCursor(64-strlen("(press R")*3, 48);
-    tft.println((char*)"(press R");
-    tft.setCursor(64-strlen("to land)")*3, 56);
-    tft.println((char*)"to land)");
-  }
+    if (spaceship._former_orbiting_planet != NULL && spaceship._orbiting_planet == NULL) {
+      centered_text("(press R", BLACK, 48);
+      centered_text("to land)", BLACK, 56);
+    }
+    if (spaceship._orbiting_planet != NULL) {
+      centered_text("(press R", GRAY, 48);
+      centered_text("to land)", GRAY, 56);
+    }
   }
 
   // CONTROL
@@ -264,6 +290,14 @@ void mode_space() {
   
   // Explorer mode
   if (space_explorer_mode) view.center_on(spaceship);
+
+  // Lost in space?
+  if (spaceship._cx < view.x1() - tft.width()  || spaceship._cx > view.x2() + tft.width() ||
+      spaceship._cy < view.y1() - tft.height() || spaceship._cy > view.y2() + tft.height()) {
+      centered_text("*lost in space*", GRAY);
+      delay(800);
+      set_main_mode(MODE_TITLE);
+  }
 
   // WAIT
   delay(30);
@@ -276,7 +310,7 @@ void mode_space() {
   if (button_left.is_pressed()) {
     if (space_explorer_mode) {
       space_explorer_mode = false;
-      set_main_mode(MODE_CALIBRATE);
+      set_main_mode(MODE_TITLE);
     } else {
       space_explorer_mode = true;
       set_main_mode(MODE_SPACE);
@@ -334,9 +368,7 @@ void mode_planetscape() {
   if (spaceship._cy < -tft.height()/2) { // leaves "upward"
     spaceship.restore_state();
     set_main_mode(MODE_SPACE);
-  }
-
-  if (spaceship._cy >= planetscape_planet_surface) {
+  } else if (spaceship._cy >= planetscape_planet_surface) {
     mode_lander_init_for_descent();
     set_main_mode(MODE_LANDER);
   }
@@ -359,11 +391,16 @@ void mode_lander_init_for_descent() {
   lander_gravity = (planet->_radius / 10.0);
 }
 
+void mode_lander_init_for_ascent() {
+  mode_lander_init_bg = true;
+
+  spaceship._cy -= 10;
+  spaceship._direction = -PI/2;
+}
+
 void mode_lander(void) {
   if (mode_lander_init_bg) {
     planet->draw_lander_surface(tft, 80);
-  }
-  if (mode_lander_init_bg) {
     mode_lander_init_bg = false;
   } else {
     spaceship.erase(tft, zero_view);
@@ -411,6 +448,11 @@ void mode_surface() {
   tft.setCursor(64-strlen("SURFACE")*3, 40);
   tft.println("SURFACE");
   delay(30);
+
+  if (button_right.is_pressed()) {
+    mode_lander_init_for_ascent();
+    set_main_mode(MODE_LANDER);
+  }
 }
 
 void mode_story() {
