@@ -117,6 +117,18 @@ Viewport zero_view(
   -ST7735_TFTWIDTH/2, -ST7735_TFTHEIGHT/2,
    ST7735_TFTWIDTH,    ST7735_TFTHEIGHT);
 
+int shape_down_arrow[] = {
+ -2, -2,
+  2, -2,
+  2,  2,
+  3,  2,
+  0,  4,
+ -3,  2,
+ -2,  2,
+ -2, -2
+};
+int shape_down_arrow_size = 8;
+
 // Main Mode determines which "state" the game is in
 #define MODE_TITLE       0
 #define MODE_CALIBRATE   1
@@ -151,6 +163,12 @@ void centered_text(const char text[], int color=GRAY, int y=40) {
   tft.setTextColor(color);
   tft.setCursor(64-strlen(text)*3, y);
   tft.println((char*)text);
+}
+
+void draw_shape(int x, int y, int path[], int count, int color, int m=1) {
+  for (int i = 0; i < count-1; i++) {
+    tft.drawLine(x+m*path[i*2], y+m*path[i*2+1], x+m*path[i*2+2], y+m*path[i*2+3], color);
+  }
 }
 
 void set_main_mode(int mode) {
@@ -225,28 +243,23 @@ void mode_calibrate() {
   cal_y = tft.height() - paddle_left.value(tft.height()-1);
   if (cal_y > tft.height()-1) cal_y = tft.height()-1;
 
-  tft.drawCircle(tft.width()/2, tft.height(), cal_r, YELLOW);
-  tft.drawFastHLine(tft.width()/2-cal_r+1, tft.height()-1, cal_r*2-1, GRAY);
-  tft.drawFastVLine(tft.width()/2, tft.height()-cal_r+1, cal_r, GRAY);
+  tft.drawCircle(tft.width()/2, tft.height()-3, cal_r, YELLOW);
+  tft.drawFastHLine(tft.width()/2-cal_r+1, tft.height()-3, cal_r*2-1, GRAY);
+  tft.drawFastVLine(tft.width()/2, tft.height()-cal_r+1-3, cal_r+3, GRAY);
 
   tft.drawFastVLine(cal_x, 0, tft.height(), RED);
   tft.drawFastHLine(0, cal_y, tft.width(), BLUE);  
 
-  tft.setTextSize(1);
-  tft.setTextColor(GRAY);
-  tft.setCursor(37, 50);
-  tft.println("your ship");
-  tft.setTextColor(WHITE);
-  tft.setCursor(37, 62);
-  tft.println("IS READY!");
+  centered_text("your ship", GRAY, 20);
+  centered_text("IS READY!", WHITE, 32);
 
-  tft.setCursor(37, 107);
-  tft.println("start the");
-  tft.setCursor(46, 119);
-  tft.println("engine");
+  centered_text("start the", WHITE, 87);
+  centered_text("engine", WHITE, 99);
+
+  draw_shape(tft.width()/2, 115, shape_down_arrow, shape_down_arrow_size, YELLOW, 2);
 
   // if (button_start.is_pressed() ||
-  if ((cal_y == tft.height()-1 && cal_x >= tft.width()/2-3 && cal_x <= tft.width()/2+3) ) {
+  if ((cal_y >= tft.height()-3 && cal_x >= tft.width()/2-3 && cal_x <= tft.width()/2+3) ) {
     spaceship.reset();
     set_main_mode(MODE_SPACE);
   }
@@ -327,7 +340,7 @@ void mode_planetscape_init_for_descent() {
     planet->planetscape_center_y(tft),
     planet->_radius * 10 + 3);
   planetscape_planet_surface = planet->planetscape_center_y(tft) -
-    (planet->_radius * 10) - 5 -
+    (planet->_radius * 10) - 12 -
     tft.height()/2;
   spaceship.save_state();
   spaceship._cx = 0;
